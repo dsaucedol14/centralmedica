@@ -1,0 +1,19 @@
+<%- include('../partials/encabezado') %>
+<h1>Historia clínica</h1>
+<p class="tenue"><a href="/pacientes/<%= p.id %>?tab=historia">← <%= f.nombreCompleto(p) %></a> · Exp. <%= p.expediente %><%= p.fecha_nacimiento ? ' · ' + f.edad(p.fecha_nacimiento) : '' %></p>
+
+<form method="post" action="/pacientes/<%= p.id %>/historia" class="panel">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <label for="alergias">Alergias</label>
+  <input id="alergias" name="alergias" value="<%= p.alergias || '' %>" maxlength="500" placeholder="Medicamentos, alimentos, látex… o «Negadas»">
+  <% for (const [campo, etiqueta, ayuda] of HISTORIA) { %>
+    <% if (campo === 'gineco_obstetricos' && p.sexo === 'M') { %><input type="hidden" name="<%= campo %>" value="<%= h[campo] || '' %>"><% continue; } %>
+    <label for="<%= campo %>"><%= etiqueta %></label>
+    <textarea id="<%= campo %>" name="<%= campo %>" rows="3" maxlength="5000" placeholder="<%= ayuda %>"><%= h[campo] || '' %></textarea>
+  <% } %>
+  <p class="acciones">
+    <button class="btn" type="submit">Guardar historia clínica</button>
+    <a class="btn sec" href="/pacientes/<%= p.id %>?tab=historia">Cancelar</a>
+  </p>
+</form>
+<%- include('../partials/pie') %>

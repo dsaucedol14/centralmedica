@@ -1,0 +1,87 @@
+<%- include('../partials/encabezado') %>
+<div class="cabecera">
+  <h1>Agenda</h1>
+  <a class="btn" href="/citas/nueva<%= medicoId ? '?medico=' + medicoId : '' %>">+ Nueva cita</a>
+</div>
+
+<form class="filtros" method="get" action="/agenda">
+  <a class="btn sec" href="?semana=<%= anterior %>&medico=<%= medicoId %>">← Semana anterior</a>
+  <a class="btn sec" href="?semana=<%= hoyTexto %>&medico=<%= medicoId %>">Hoy</a>
+  <a class="btn sec" href="?semana=<%= siguiente %>&medico=<%= medicoId %>">Semana siguiente →</a>
+  <input type="date" name="semana" value="<%= dias[0] %>" onchange="this.form.submit()" aria-label="Ir a la semana">
+  <select name="medico" onchange="this.form.submit()" aria-label="Médico">
+    <option value="0">Todos los médicos</option>
+    <% for (const m of medicos) { %><option value="<%= m.id %>" <%= m.id === medicoId ? 'selected' : '' %>><%= m.nombre %></option><% } %>
+  </select>
+</form>
+
+<div class="semana">
+  <% for (const d of dias) { %>
+    <% const domingo = f.aFecha(d).getDay() === 0; if (domingo && !porDia[d].length && !bloqueosPorDia[d].length) continue; %>
+    <% const bloqueoMedico = medicoId ? bloqueosPorDia[d][0] : null; %>
+    <% const volver = `/agenda?semana=${dias[0]}&medico=${medicoId}`; %>
+    <section class="dia <%= d === hoyTexto ? 'hoy' : '' %> <%= bloqueoMedico ? 'bloqueado' : '' %>">
+      <header>
+        <span><%= f.diaLargo(d) %></span>
+        <% if (!bloqueoMedico) { %>
+          <a class="enlace-chico" href="/citas/nueva?fecha=<%= d %><%= medicoId ? '&medico=' + medicoId : '' %>" title="Agendar en este día">+ cita</a>
+        <% } %>
+      </header>
+      <% if (bloqueoMedico) { %>
+        <div class="aviso-bloqueo">
+          <strong>No da consultas</strong><% if (bloqueoMedico.motivo) { %> · <%= bloqueoMedico.motivo %><% } %>
+          <% if (puedeBloquear) { %>
+            <form method="post" action="/agenda/bloqueos/<%= bloqueoMedico.id %>/eliminar">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <input type="hidden" name="volver" value="<%= volver %>">
+              <button class="enlace-chico" type="submit">Desbloquear</button>
+            </form>
+          <% } %>
+        </div>
+      <% } else if (!medicoId && bloqueosPorDia[d].length) { %>
+        <% for (const b of bloqueosPorDia[d]) { %>
+          <div class="aviso-bloqueo"><strong><%= b.medico %></strong> no da consultas<% if (b.motivo) { %> · <%= b.motivo %><% } %></div>
+        <% } %>
+      <% } else if (puedeBloquear && d >= hoyTexto) { %>
+        <details class="bloquear-dia">
+          <summary>Bloquear día</summary>
+          <form method="post" action="/agenda/bloqueos">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <input type="hidden" name="volver" value="<%= volver %>">
+            <input type="hidden" name="medico_id" value="<%= medicoId %>">
+            <input type="hidden" name="fecha" value="<%= d %>">
+            <label for="motivo-<%= d %>">Motivo <span class="tenue">(opcional)</span></label>
+            <input id="motivo-<%= d %>" name="motivo" maxlength="200">
+            <button class="btn chico peligro" type="submit">No dar consultas este día</button>
+          </form>
+        </details>
+      <% } %>
+      <% if (!porDia[d].length) { %><p class="vacio">Sin citas</p><% } %>
+      <% for (const c of porDia[d]) { %>
+        <div class="cita estado-<%= c.estado.toLowerCase() %>">
+          <div class="cita-hora"><%= f.hora(c.inicio) %> <small><%= c.duracion_min %> min</small></div>
+          <div class="cita-quien">
+            <% if (c.paciente_id) { %><a href="/pacientes/<%= c.paciente_id %>"><%= c.nombre %> <%= c.apellido_paterno %></a>
+            <% } else { %><%= c.nombre_paciente %> <span class="etiqueta">sin expediente</span><% } %>
+          </div>
+          <% if (c.motivo) { %><div class="tenue"><%= c.motivo %></div><% } %>
+          <% if (!medicoId) { %><div class="tenue"><%= c.medico %></div><% } %>
+          <div class="cita-acciones">
+            <form method="post" action="/citas/<%= c.id %>/estado">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <input type="hidden" name="volver" value="/agenda?semana=<%= dias[0] %>&medico=<%= medicoId %>">
+              <select name="estado" onchange="this.form.submit()" aria-label="Estado de la cita">
+                <% for (const [clave, etiqueta] of Object.entries(ESTADOS)) { %><option value="<%= clave %>" <%= c.estado === clave ? 'selected' : '' %>><%= etiqueta %></option><% } %>
+              </select>
+            </form>
+            <a class="enlace-chico" href="/citas/<%= c.id %>/editar">Editar</a>
+            <% if (usuario.esMedico && c.paciente_id && c.estado !== 'ATENDIDA' && c.estado !== 'CANCELADA') { %>
+              <a class="enlace-chico" href="/pacientes/<%= c.paciente_id %>/consultas/nueva?cita=<%= c.id %>">Atender</a>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    </section>
+  <% } %>
+</div>
+<%- include('../partials/pie') %>

@@ -1,0 +1,65 @@
+<%- include('../partials/encabezado') %>
+<h1>Nuevo certificado médico</h1>
+<p class="tenue"><a href="/pacientes/<%= p.id %>?tab=certificados">← <%= f.nombreCompleto(p) %></a> · Exp. <%= p.expediente %></p>
+<% if (!usuario.cedula) { %><div class="aviso info">Tu cédula profesional no está capturada. Agrégala en <a href="/cuenta">Mi cuenta</a> antes de emitir el certificado.</div><% } %>
+<% if (error) { %><div class="aviso error"><%= error %></div><% } %>
+
+<nav class="pestanas">
+  <% for (const [clave, etiqueta] of Object.entries(TIPOS_CERTIFICADO)) { %>
+    <a class="<%= c.tipo === clave ? 'activo' : '' %>" href="?tipo=<%= clave %>"><%= etiqueta %></a>
+  <% } %>
+</nav>
+
+<form method="post" action="/pacientes/<%= p.id %>/certificados" class="panel">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="tipo" value="<%= c.tipo %>">
+  <div class="rejilla tres">
+    <div><label for="fecha">Fecha de expedición</label><input id="fecha" name="fecha" type="date" value="<%= c.fecha %>" required></div>
+    <div class="ancho2"><label for="dirigido_a">Dirigido a</label><input id="dirigido_a" name="dirigido_a" value="<%= c.dirigido_a || '' %>" maxlength="200"></div>
+  </div>
+
+  <% if (c.tipo === 'SALUD') { %>
+    <label for="proposito">Para qué se expide <span class="tenue">(opcional; se agrega al texto)</span></label>
+    <input id="proposito" name="proposito" value="<%= c.proposito || '' %>" maxlength="200" placeholder="para ingresar a la escuela / para trámite laboral / para realizar actividad física">
+  <% } %>
+
+  <% if (c.tipo === 'INCAPACIDAD') { %>
+    <label for="diagnostico">Diagnóstico *</label>
+    <input id="diagnostico" name="diagnostico" value="<%= c.diagnostico || '' %>" maxlength="300" required>
+    <div class="rejilla tres">
+      <div><label for="dias_reposo">Días de reposo *</label><input id="dias_reposo" name="dias_reposo" type="number" min="1" max="365" value="<%= c.dias_reposo || '' %>" required></div>
+      <div><label for="desde">A partir del *</label><input id="desde" name="desde" type="date" value="<%= c.desde || '' %>" required></div>
+      <div><label>Termina el</label><output id="hasta" class="calculado">—</output></div>
+    </div>
+  <% } %>
+
+  <% if (c.tipo === 'ASISTENCIA') { %>
+    <label for="horario">Horario en que estuvo en consulta <span class="tenue">(opcional)</span></label>
+    <input id="horario" name="horario" value="<%= c.horario || '' %>" maxlength="60" placeholder="10:00 a 11:00 horas">
+  <% } %>
+
+  <label for="observaciones">Observaciones o texto adicional <span class="tenue">(opcional; va después del texto del certificado)</span></label>
+  <textarea id="observaciones" name="observaciones" rows="3" maxlength="2000"><%= c.observaciones || '' %></textarea>
+
+  <p class="tenue">El texto se redacta con los datos del paciente (nombre, edad, sexo<%= c.tipo === 'SALUD' ? ', grupo sanguíneo' : '' %>) y tu cédula. Una vez emitido no cambia.</p>
+  <p class="acciones">
+    <button class="btn" type="submit">Emitir certificado</button>
+    <a class="btn sec" href="/pacientes/<%= p.id %>?tab=certificados">Cancelar</a>
+  </p>
+</form>
+<% if (c.tipo === 'INCAPACIDAD') { %>
+<script>
+  (function () {
+    const dias = document.getElementById('dias_reposo'), desde = document.getElementById('desde'), hasta = document.getElementById('hasta');
+    function calcular() {
+      const n = parseInt(dias.value, 10);
+      if (!desde.value || !(n > 0)) { hasta.textContent = '—'; return; }
+      const [a, m, d] = desde.value.split('-').map(Number);
+      const fin = new Date(a, m - 1, d + n - 1);
+      hasta.textContent = fin.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    dias.addEventListener('input', calcular); desde.addEventListener('input', calcular); calcular();
+  })();
+</script>
+<% } %>
+<%- include('../partials/pie') %>

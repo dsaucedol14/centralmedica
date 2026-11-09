@@ -1,0 +1,85 @@
+<%- include('../partials/encabezado') %>
+<h1><%= c.id ? 'Editar cita' : 'Nueva cita' %></h1>
+<% if (error) { %><div class="aviso error"><%= error %></div><% } %>
+
+<form class="panel" method="post" action="<%= c.id ? '/citas/' + c.id : '/citas' %>" id="form-cita">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="paciente_id" id="paciente_id" value="<%= c.paciente_id || '' %>">
+
+  <label for="buscar">Paciente</label>
+  <div id="elegido" class="elegido" <%= paciente ? '' : 'hidden' %>>
+    <strong id="elegido-nombre"><%= paciente ? f.nombreCompleto(paciente) : '' %></strong>
+    <span class="tenue" id="elegido-exp"><%= paciente ? 'Exp. ' + paciente.expediente : '' %></span>
+    <button type="button" class="btn chico sec" id="cambiar">Cambiar</button>
+  </div>
+  <div id="busqueda" <%= paciente ? 'hidden' : '' %>>
+    <input id="buscar" autocomplete="off" placeholder="Escribe nombre o expediente para buscar en los expedientes">
+    <ul id="resultados" class="resultados" hidden></ul>
+    <p class="tenue">¿Primera vez? Escribe sus datos aquí; el expediente se crea cuando llegue a consulta.</p>
+    <div class="rejilla dos">
+      <div><label for="nombre_paciente">Nombre de la persona</label><input id="nombre_paciente" name="nombre_paciente" value="<%= c.nombre_paciente || '' %>" maxlength="200"></div>
+      <div><label for="telefono">Teléfono</label><input id="telefono" name="telefono" type="tel" value="<%= c.telefono || '' %>" maxlength="30"></div>
+    </div>
+  </div>
+
+  <div class="rejilla tres">
+    <div><label for="medico_id">Médico</label>
+      <select id="medico_id" name="medico_id" required>
+        <% for (const m of medicos) { %><option value="<%= m.id %>" <%= m.id === c.medico_id ? 'selected' : '' %>><%= m.nombre %></option><% } %>
+      </select></div>
+    <div><label for="fecha">Fecha</label><input id="fecha" name="fecha" type="date" value="<%= c.inicio ? c.inicio.slice(0, 10) : '' %>" required></div>
+    <div><label for="hora">Hora</label><input id="hora" name="hora" type="time" step="300" value="<%= c.inicio ? c.inicio.slice(11, 16) : '' %>" required></div>
+    <div><label for="duracion_min">Duración</label>
+      <select id="duracion_min" name="duracion_min">
+        <% for (const m of [15, 20, 30, 45, 60, 90]) { %><option value="<%= m %>" <%= Number(c.duracion_min) === m ? 'selected' : '' %>><%= m %> minutos</option><% } %>
+      </select></div>
+    <div class="ancho2"><label for="motivo">Motivo</label><input id="motivo" name="motivo" value="<%= c.motivo || '' %>" maxlength="300" placeholder="Primera vez, revisión, resultados…"></div>
+  </div>
+  <label for="notas">Notas</label>
+  <input id="notas" name="notas" value="<%= c.notas || '' %>" maxlength="500">
+  <% if (!medicos.length) { %><div class="aviso info">No hay médicos activos. Un administrador debe dar de alta al menos un usuario con rol Médico.</div><% } %>
+  <p class="acciones">
+    <button class="btn" type="submit"><%= c.id ? 'Guardar cambios' : 'Agendar' %></button>
+    <a class="btn sec" href="/agenda">Cancelar</a>
+  </p>
+</form>
+<script>
+  (function () {
+    const buscar = document.getElementById('buscar'), resultados = document.getElementById('resultados');
+    const id = document.getElementById('paciente_id'), elegido = document.getElementById('elegido'), busqueda = document.getElementById('busqueda');
+    let espera;
+    function elegir(p) {
+      id.value = p.id;
+      document.getElementById('elegido-nombre').textContent = p.nombre;
+      document.getElementById('elegido-exp').textContent = 'Exp. ' + p.expediente;
+      elegido.hidden = false; busqueda.hidden = true; resultados.hidden = true;
+    }
+    document.getElementById('cambiar').addEventListener('click', () => {
+      id.value = ''; elegido.hidden = true; busqueda.hidden = false; buscar.value = ''; buscar.focus();
+    });
+    buscar.addEventListener('input', () => {
+      clearTimeout(espera);
+      const t = buscar.value.trim();
+      if (t.length < 2) { resultados.hidden = true; return; }
+      espera = setTimeout(async () => {
+        const r = await fetch('/api/pacientes?q=' + encodeURIComponent(t));
+        const lista = await r.json();
+        resultados.innerHTML = '';
+        for (const p of lista) {
+          const li = document.createElement('li');
+          li.textContent = p.nombre + ' · Exp. ' + p.expediente + (p.telefono ? ' · ' + p.telefono : '');
+          li.tabIndex = 0;
+          li.addEventListener('click', () => elegir(p));
+          li.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); elegir(p); } });
+          resultados.appendChild(li);
+        }
+        if (!lista.length) {
+          const li = document.createElement('li'); li.className = 'tenue'; li.textContent = 'Sin coincidencias: captura el nombre abajo.';
+          resultados.appendChild(li);
+        }
+        resultados.hidden = false;
+      }, 250);
+    });
+  })();
+</script>
+<%- include('../partials/pie') %>

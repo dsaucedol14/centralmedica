@@ -1,0 +1,48 @@
+<%- include('../partials/encabezado') %>
+<link rel="stylesheet" href="/static/css/impresion.css">
+<style>@page { size: letter portrait; margin: 10mm 0; }</style>
+<div class="no-imprimir">
+  <p class="tenue"><a href="/pacientes/<%= p.id %>?tab=consultas">← <%= f.nombreCompleto(p) %></a></p>
+  <div class="cabecera">
+    <h1>Nota de consulta</h1>
+    <div class="acciones">
+      <% if (usuario.esMedico) { %>
+        <a class="btn" href="/pacientes/<%= p.id %>/recetas/nueva?consulta=<%= c.id %>">Receta</a>
+        <a class="btn sec" href="/pacientes/<%= p.id %>/ordenes/nueva?consulta=<%= c.id %>">Orden de estudios</a>
+        <a class="btn sec" href="/pacientes/<%= p.id %>/certificados/nuevo?consulta=<%= c.id %>">Certificado</a>
+      <% } %>
+      <% if (usuario.id === c.medico_id) { %><a class="btn sec" href="/consultas/<%= c.id %>/editar">Corregir</a><% } %>
+      <button class="btn sec" type="button" onclick="window.print()">Imprimir</button>
+    </div>
+  </div>
+  <% if (recetas.length || ordenes.length) { %>
+    <p>Documentos de esta consulta:
+      <% for (const r of recetas) { %><a class="etiqueta" href="/recetas/<%= r.id %>">Receta <%= r.folio %></a><% } %>
+      <% for (const o of ordenes) { %><a class="etiqueta" href="/ordenes/<%= o.id %>">Orden <%= o.folio %></a><% } %>
+    </p>
+  <% } %>
+</div>
+
+<article class="hoja carta">
+  <%- include('../partials/membrete', { consultorio, medico: { nombre: c.medico, cedula: c.cedula, especialidad: c.especialidad } }) %>
+  <h2 class="doc-titulo">NOTA MÉDICA</h2>
+  <table class="doc-paciente">
+    <tr><td><strong>Paciente:</strong> <%= f.nombreCompleto(p) %></td><td><strong>Exp.:</strong> <%= p.expediente %></td></tr>
+    <tr><td><strong>Edad:</strong> <%= f.edad(p.fecha_nacimiento, f.aFecha(c.fecha)) || '—' %> · <strong>Sexo:</strong> <%= p.sexo === 'F' ? 'Femenino' : p.sexo === 'M' ? 'Masculino' : '—' %></td>
+        <td><strong>Fecha:</strong> <%= f.fechaHora(c.fecha) %></td></tr>
+    <tr><td colspan="2"><strong>Alergias:</strong> <%= p.alergias || 'No registradas' %></td></tr>
+  </table>
+  <% const signos = [
+       c.peso ? `Peso ${c.peso} kg` : '', c.talla ? `Talla ${c.talla} m` : '', imc ? `IMC ${imc} (${f.clasificaImc(imc)})` : '',
+       c.ta_sistolica ? `TA ${c.ta_sistolica}/${c.ta_diastolica || '?'} mmHg` : '', c.fc ? `FC ${c.fc} lpm` : '', c.fr ? `FR ${c.fr} rpm` : '',
+       c.temperatura ? `Temp. ${c.temperatura} °C` : '', c.spo2 ? `SpO₂ ${c.spo2}%` : '', c.glucosa ? `Glucosa ${c.glucosa} mg/dL` : ''].filter(Boolean); %>
+  <div class="doc-seccion"><h3>Motivo de consulta</h3><p class="pre"><%= c.motivo %></p></div>
+  <% if (c.padecimiento_actual) { %><div class="doc-seccion"><h3>Padecimiento actual</h3><p class="pre"><%= c.padecimiento_actual %></p></div><% } %>
+  <% if (signos.length) { %><div class="doc-seccion"><h3>Signos vitales</h3><p><%= signos.join(' · ') %></p></div><% } %>
+  <% if (c.exploracion) { %><div class="doc-seccion"><h3>Exploración física</h3><p class="pre"><%= c.exploracion %></p></div><% } %>
+  <div class="doc-seccion"><h3>Diagnóstico</h3><p class="pre"><%= c.diagnostico %><%= c.cie10 ? ' (CIE-10: ' + c.cie10 + ')' : '' %></p></div>
+  <% if (c.plan) { %><div class="doc-seccion"><h3>Plan y tratamiento</h3><p class="pre"><%= c.plan %></p></div><% } %>
+  <% if (c.pronostico) { %><div class="doc-seccion"><h3>Pronóstico</h3><p><%= c.pronostico %></p></div><% } %>
+  <div class="firma"><div class="linea"></div><strong><%= c.medico %></strong><br>Céd. Prof. <%= c.cedula || '—' %></div>
+</article>
+<%- include('../partials/pie') %>

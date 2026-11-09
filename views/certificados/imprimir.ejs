@@ -1,0 +1,16 @@
+<%- include('../partials/encabezado') %>
+<link rel="stylesheet" href="/static/css/impresion.css">
+<style>@page { size: letter portrait; margin: 0; }</style>
+<%- include('../partials/barra-impresion', { pestana: 'certificados', nota: 'Carta vertical.' }) %>
+
+<article class="hoja fija carta certificado">
+  <%- include('../partials/membrete', { consultorio, medico }) %>
+  <p class="folio der">Folio <%= c.folio %></p>
+  <h2 class="doc-titulo"><%= TIPOS_CERTIFICADO[c.tipo].replace(' / reposo', '').toUpperCase() %></h2>
+  <p class="dirigido"><strong><%= c.dirigido_a %></strong><br>PRESENTE</p>
+  <div class="cuerpo pre"><%= c.texto %></div>
+  <p class="cierre">Se extiende el presente a solicitud del interesado para los fines que convengan<%= consultorio.ciudad ? ', en ' + consultorio.ciudad : '' %>, a <%= f.fechaLarga(c.fecha) %>.</p>
+  <div class="firma grande"><div class="linea"></div><strong><%= medico.nombre %></strong><br>
+    <%= medico.especialidad || 'Médico' %><br>Céd. Prof. <%= medico.cedula || '—' %><%= medico.universidad ? ' · ' + medico.universidad : '' %></div>
+</article>
+<%- include('../partials/pie') %>

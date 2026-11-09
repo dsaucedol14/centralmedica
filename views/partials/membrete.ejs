@@ -1,0 +1,13 @@
+<header class="membrete">
+  <div class="membrete-medico">
+    <div class="medico-nombre"><%= medico.nombre %></div>
+    <% if (medico.especialidad) { %><div><%= medico.especialidad %><%= medico.cedula_especialidad ? ' · Céd. Esp. ' + medico.cedula_especialidad : '' %></div><% } %>
+    <div>Céd. Prof. <%= medico.cedula || '—' %><%= medico.universidad ? ' · ' + medico.universidad : '' %></div>
+  </div>
+  <div class="membrete-consultorio">
+    <div class="consultorio-nombre"><img src="/static/img/logo.png" alt=""> <%= consultorio.nombre %></div>
+    <% if (consultorio.direccion) { %><div><%= consultorio.direccion %><%= consultorio.ciudad ? ', ' + consultorio.ciudad : '' %></div><% } %>
+    <% if (consultorio.telefono || consultorio.email) { %><div><%= [consultorio.telefono ? 'Tel. ' + consultorio.telefono : '', consultorio.email].filter(Boolean).join(' · ') %></div><% } %>
+    <% if (consultorio.horario) { %><div><%= consultorio.horario %></div><% } %>
+  </div>
+</header>

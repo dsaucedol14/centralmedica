@@ -1,0 +1,71 @@
+<%- include('partials/encabezado') %>
+<div class="cabecera">
+  <div>
+    <h1>Buen día, <%= usuario.nombre.split(' ')[0] %></h1>
+    <p class="tenue"><%= f.diaLargo(fecha) %></p>
+  </div>
+  <div class="acciones">
+    <a class="btn" href="/pacientes/nuevo">+ Nuevo paciente</a>
+    <a class="btn sec" href="/citas/nueva">+ Agendar cita</a>
+  </div>
+</div>
+
+<% if (usuario.esMedico && !usuario.cedula) { %>
+  <div class="aviso info">Captura tu cédula profesional en <a href="/cuenta">Mi cuenta</a>: es obligatoria para emitir recetas y certificados.</div>
+<% } %>
+
+<div class="tarjetas">
+  <div class="tarjeta"><span class="cifra"><%= totales.pacientes %></span><span>pacientes activos</span></div>
+  <div class="tarjeta"><span class="cifra"><%= totales.consultasMes %></span><span>consultas este mes</span></div>
+  <div class="tarjeta"><span class="cifra"><%= totales.recetasMes %></span><span>recetas este mes</span></div>
+  <div class="tarjeta"><span class="cifra"><%= citas.length %></span><span>citas hoy</span></div>
+</div>
+
+<div class="columnas">
+  <section class="panel">
+    <h2>Citas de hoy <a class="enlace-chico" href="/agenda">Ver agenda →</a></h2>
+    <% if (!citas.length) { %>
+      <p class="vacio">No hay citas para hoy.</p>
+    <% } else { %>
+      <ul class="lista-citas">
+      <% for (const c of citas) { %>
+        <li class="cita estado-<%= c.estado.toLowerCase() %>">
+          <span class="hora"><%= f.hora(c.inicio) %></span>
+          <span class="quien">
+            <% if (c.paciente_id) { %><a href="/pacientes/<%= c.paciente_id %>"><%= c.nombre %> <%= c.apellido_paterno %> <%= c.apellido_materno || '' %></a>
+            <% } else { %><%= c.nombre_paciente %> <span class="etiqueta">sin expediente</span><% } %>
+            <small><%= c.motivo || '' %> · <%= c.medico %></small>
+          </span>
+          <span class="acciones-cita">
+            <% if (usuario.esMedico && c.paciente_id && c.estado !== 'ATENDIDA') { %>
+              <a class="btn chico" href="/pacientes/<%= c.paciente_id %>/consultas/nueva?cita=<%= c.id %>">Atender</a>
+            <% } else if (!c.paciente_id) { %>
+              <a class="btn chico sec" href="/citas/<%= c.id %>/editar">Ligar expediente</a>
+            <% } %>
+            <span class="estado"><%= { PROGRAMADA: 'Programada', CONFIRMADA: 'Confirmada', ATENDIDA: 'Atendida', NO_ASISTIO: 'No asistió' }[c.estado] %></span>
+          </span>
+        </li>
+      <% } %>
+      </ul>
+    <% } %>
+  </section>
+
+  <section class="panel">
+    <h2>Atendidos recientemente</h2>
+    <% if (!recientes.length) { %>
+      <p class="vacio">Aún no hay consultas registradas.</p>
+    <% } else { %>
+      <table>
+        <tbody>
+        <% for (const p of recientes) { %>
+          <tr>
+            <td><a href="/pacientes/<%= p.id %>"><%= f.nombreLista(p) %></a><br><small class="tenue">Exp. <%= p.expediente %><%= p.fecha_nacimiento ? ' · ' + f.edad(p.fecha_nacimiento) : '' %></small></td>
+            <td class="der tenue"><%= f.fecha(p.ultima) %></td>
+          </tr>
+        <% } %>
+        </tbody>
+      </table>
+    <% } %>
+  </section>
+</div>
+<%- include('partials/pie') %>

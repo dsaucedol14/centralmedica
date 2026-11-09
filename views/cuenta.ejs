@@ -1,0 +1,35 @@
+<%- include('partials/encabezado') %>
+<h1>Mi cuenta</h1>
+<p class="tenue">Usuario <strong><%= usuario.usuario %></strong> · <%= usuario.esMedico ? 'Médico' : 'Asistente' %><%= usuario.esAdmin ? ' · Administrador' : '' %></p>
+
+<div class="columnas">
+  <form class="panel" method="post" action="/cuenta/datos">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Mis datos</h2>
+    <label for="nombre">Nombre completo <% if (usuario.esMedico) { %><span class="tenue">(como aparece en tu título, p. ej. «Dra. Ana López Cruz»)</span><% } %></label>
+    <input id="nombre" name="nombre" value="<%= usuario.nombre %>" maxlength="150" required>
+    <% if (usuario.esMedico) { %>
+      <p class="tenue">Estos datos se imprimen en tus recetas, órdenes y certificados.</p>
+      <div class="rejilla dos">
+        <div><label for="cedula">Cédula profesional</label><input id="cedula" name="cedula" value="<%= usuario.cedula || '' %>" maxlength="30"></div>
+        <div><label for="universidad">Institución que expidió el título</label><input id="universidad" name="universidad" value="<%= usuario.universidad || '' %>" maxlength="200"></div>
+        <div><label for="especialidad">Especialidad <span class="tenue">(opcional)</span></label><input id="especialidad" name="especialidad" value="<%= usuario.especialidad || '' %>" maxlength="120"></div>
+        <div><label for="cedula_especialidad">Cédula de especialidad</label><input id="cedula_especialidad" name="cedula_especialidad" value="<%= usuario.cedula_especialidad || '' %>" maxlength="30"></div>
+      </div>
+    <% } %>
+    <p><button class="btn" type="submit">Guardar datos</button></p>
+  </form>
+
+  <form class="panel" method="post" action="/cuenta/password">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Cambiar contraseña</h2>
+    <label for="actual">Contraseña actual</label>
+    <input id="actual" name="actual" type="password" autocomplete="current-password" required>
+    <label for="nueva">Nueva contraseña <span class="tenue">(mínimo 8)</span></label>
+    <input id="nueva" name="nueva" type="password" autocomplete="new-password" minlength="8" required>
+    <label for="confirmacion">Confírmala</label>
+    <input id="confirmacion" name="confirmacion" type="password" autocomplete="new-password" minlength="8" required>
+    <p><button class="btn" type="submit">Cambiar contraseña</button></p>
+  </form>
+</div>
+<%- include('partials/pie') %>

@@ -1,0 +1,20 @@
+<%- include('../partials/encabezado') %>
+<h1>Administración</h1>
+<%- include('../partials/menu-admin') %>
+<form class="panel" method="post" action="/admin/consultorio">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Datos del consultorio</h2>
+  <p class="tenue">Salen en el encabezado de las recetas, órdenes de estudio, certificados y notas impresas.</p>
+  <div class="rejilla dos">
+    <div><label for="nombre">Nombre</label><input id="nombre" name="nombre" value="<%= c.nombre %>" maxlength="150" required></div>
+    <div><label for="telefono">Teléfono(s)</label><input id="telefono" name="telefono" value="<%= c.telefono || '' %>" maxlength="60"></div>
+    <div><label for="direccion">Dirección</label><input id="direccion" name="direccion" value="<%= c.direccion || '' %>" maxlength="250" placeholder="Calle, número, colonia, C.P."></div>
+    <div><label for="ciudad">Ciudad y estado</label><input id="ciudad" name="ciudad" value="<%= c.ciudad || '' %>" maxlength="100" placeholder="Huauchinango, Puebla"></div>
+    <div><label for="email">Correo</label><input id="email" name="email" type="email" value="<%= c.email || '' %>" maxlength="120"></div>
+    <div><label for="horario">Horario de atención</label><input id="horario" name="horario" value="<%= c.horario || '' %>" maxlength="150" placeholder="Lunes a viernes 9:00–14:00 y 16:00–20:00"></div>
+  </div>
+  <label for="leyenda_receta">Leyenda al pie de la receta <span class="tenue">(opcional)</span></label>
+  <input id="leyenda_receta" name="leyenda_receta" value="<%= c.leyenda_receta || '' %>" maxlength="300" placeholder="En caso de urgencia acuda al servicio de urgencias más cercano.">
+  <p><button class="btn" type="submit">Guardar</button></p>
+</form>
+<%- include('../partials/pie') %>

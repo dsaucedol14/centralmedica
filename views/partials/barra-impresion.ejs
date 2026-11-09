@@ -1,0 +1,5 @@
+<div class="no-imprimir barra-impresion">
+  <a class="btn sec" href="/pacientes/<%= p.id %>?tab=<%= pestana %>">← Expediente de <%= f.nombreCompleto(p) %></a>
+  <span class="tenue"><%= nota %></span>
+  <button class="btn" type="button" onclick="window.print()">Imprimir o guardar PDF</button>
+</div>

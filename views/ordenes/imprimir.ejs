@@ -1,0 +1,24 @@
+<%- include('../partials/encabezado') %>
+<link rel="stylesheet" href="/static/css/impresion.css">
+<style>@page { size: letter portrait; margin: 0; }</style>
+<%- include('../partials/barra-impresion', { pestana: 'ordenes', nota: 'Carta vertical.' }) %>
+
+<article class="hoja fija carta">
+  <%- include('../partials/membrete', { consultorio, medico }) %>
+  <h2 class="doc-titulo">ORDEN DE ESTUDIOS · <%= TIPOS_ORDEN[o.tipo].toUpperCase() %></h2>
+  <table class="doc-paciente">
+    <tr><td><strong>Paciente:</strong> <%= f.nombreCompleto(p) %></td><td class="folio">Folio <%= o.folio %></td></tr>
+    <tr><td><strong>Edad:</strong> <%= f.edad(p.fecha_nacimiento, f.aFecha(o.fecha)) || '—' %> · <strong>Sexo:</strong> <%= p.sexo === 'F' ? 'Femenino' : p.sexo === 'M' ? 'Masculino' : '—' %></td>
+        <td><strong>Fecha:</strong> <%= f.fecha(o.fecha) %></td></tr>
+    <tr><td colspan="2"><strong>Diagnóstico presuntivo:</strong> <%= o.diagnostico %></td></tr>
+  </table>
+  <div class="doc-seccion">
+    <h3>Favor de realizar</h3>
+    <ol class="estudios">
+      <% for (const e of o.estudios.split('\n')) { %><li><%= e %></li><% } %>
+    </ol>
+  </div>
+  <% if (o.indicaciones) { %><div class="doc-seccion"><h3>Indicaciones</h3><p class="pre"><%= o.indicaciones %></p></div><% } %>
+  <div class="firma"><div class="linea"></div><strong><%= medico.nombre %></strong><br>Céd. Prof. <%= medico.cedula || '—' %></div>
+</article>
+<%- include('../partials/pie') %>

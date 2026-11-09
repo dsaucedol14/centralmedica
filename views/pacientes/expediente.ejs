@@ -1,0 +1,235 @@
+<%- include('../partials/encabezado') %>
+<%
+  const ESTADO_CITA = { PROGRAMADA: 'Programada', CONFIRMADA: 'Confirmada', ATENDIDA: 'Atendida', CANCELADA: 'Cancelada', NO_ASISTIO: 'No asistió' };
+  const TIPO_ORDEN = { LABORATORIO: 'Laboratorio', GABINETE: 'Imagen y gabinete', OTRO: 'Otros' };
+  const TIPO_CERT = { SALUD: 'Buena salud', INCAPACIDAD: 'Incapacidad / reposo', ASISTENCIA: 'Asistencia a consulta' };
+  const pestanas = [
+    ['resumen', 'Resumen'], ['historia', 'Historia clínica'], ['consultas', `Consultas (${consultas.length})`],
+    ['recetas', `Recetas (${recetas.length})`], ['ordenes', `Estudios (${ordenes.length})`],
+    ['certificados', `Certificados (${certificados.length})`], ['archivos', `Archivos (${archivos.length})`], ['citas', 'Citas'],
+  ];
+  const ultima = consultas[0];
+%>
+<section class="ficha">
+  <div class="ficha-datos">
+    <p class="tenue mono">Expediente <%= p.expediente %><%= p.activo ? '' : ' · ARCHIVADO' %></p>
+    <h1><%= f.nombreCompleto(p) %></h1>
+    <p>
+      <%= p.sexo === 'F' ? 'Mujer' : p.sexo === 'M' ? 'Hombre' : '' %>
+      <% if (p.fecha_nacimiento) { %>· <%= f.edad(p.fecha_nacimiento) %> (<%= f.fecha(p.fecha_nacimiento) %>)<% } %>
+      <% if (p.tipo_sangre) { %>· Grupo <%= p.tipo_sangre %><% } %>
+      <% if (p.telefono) { %>· Tel. <%= p.telefono %><% } %>
+    </p>
+  </div>
+  <div class="acciones">
+    <% if (usuario.esMedico) { %>
+      <a class="btn" href="/pacientes/<%= p.id %>/consultas/nueva">+ Consulta</a>
+      <a class="btn sec" href="/pacientes/<%= p.id %>/recetas/nueva">Receta</a>
+      <a class="btn sec" href="/pacientes/<%= p.id %>/ordenes/nueva">Orden de estudios</a>
+      <a class="btn sec" href="/pacientes/<%= p.id %>/certificados/nuevo">Certificado</a>
+    <% } %>
+    <a class="btn sec" href="/citas/nueva?paciente=<%= p.id %>">Agendar cita</a>
+    <a class="btn sec" href="/pacientes/<%= p.id %>/editar">Editar datos</a>
+  </div>
+</section>
+
+<div class="alergias <%= p.alergias ? '' : 'sin' %>">
+  <strong>Alergias:</strong> <%= p.alergias || 'No registradas' %>
+</div>
+
+<nav class="pestanas">
+  <% for (const [clave, etiqueta] of pestanas) { %>
+    <a href="?tab=<%= clave %>" class="<%= tab === clave ? 'activo' : '' %>"><%= etiqueta %></a>
+  <% } %>
+</nav>
+
+<% if (tab === 'resumen') { %>
+  <div class="columnas">
+    <section class="panel">
+      <h2>Datos generales</h2>
+      <dl class="datos">
+        <dt>CURP</dt><dd class="mono"><%= p.curp || '—' %></dd>
+        <dt>Estado civil</dt><dd><%= p.estado_civil || '—' %></dd>
+        <dt>Ocupación</dt><dd><%= p.ocupacion || '—' %></dd>
+        <dt>Domicilio</dt><dd><%= p.domicilio || '—' %></dd>
+        <dt>Correo</dt><dd><%= p.email || '—' %></dd>
+        <dt>Emergencias</dt><dd><%= p.contacto_emergencia || '—' %><%= p.telefono_emergencia ? ' · ' + p.telefono_emergencia : '' %></dd>
+        <% if (p.notas) { %><dt>Notas</dt><dd class="pre"><%= p.notas %></dd><% } %>
+      </dl>
+      <% if (usuario.esAdmin) { %>
+        <form method="post" action="/pacientes/<%= p.id %>/activo" onsubmit="return confirm('<%= p.activo ? '¿Archivar el expediente? Se conserva, pero deja de aparecer en la lista.' : '¿Reactivar el expediente?' %>')">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <button class="btn chico sec" type="submit"><%= p.activo ? 'Archivar expediente' : 'Reactivar expediente' %></button>
+        </form>
+      <% } %>
+    </section>
+    <section class="panel">
+      <h2>Última consulta</h2>
+      <% if (!ultima) { %>
+        <p class="vacio">Sin consultas registradas.</p>
+      <% } else { %>
+        <p><a href="/consultas/<%= ultima.id %>"><strong><%= f.fechaHora(ultima.fecha) %></strong></a> · <%= ultima.medico %></p>
+        <p><strong>Motivo:</strong> <%= ultima.motivo %></p>
+        <p class="pre"><strong>Diagnóstico:</strong> <%= ultima.diagnostico %></p>
+        <% const signos = [
+             ultima.peso ? `Peso ${ultima.peso} kg` : '', ultima.talla ? `Talla ${ultima.talla} m` : '',
+             ultima.ta_sistolica ? `TA ${ultima.ta_sistolica}/${ultima.ta_diastolica || '?'}` : '',
+             ultima.fc ? `FC ${ultima.fc}` : '', ultima.temperatura ? `${ultima.temperatura} °C` : '', ultima.spo2 ? `SpO₂ ${ultima.spo2}%` : ''].filter(Boolean); %>
+        <% if (signos.length) { %><p class="tenue"><%= signos.join(' · ') %></p><% } %>
+      <% } %>
+      <% const proxima = citas.find((c) => c.inicio >= f.hoy() && ['PROGRAMADA', 'CONFIRMADA'].includes(c.estado)); %>
+      <h2>Próxima cita</h2>
+      <p><%= proxima ? f.fechaHora(proxima.inicio) + ' · ' + proxima.medico : 'Sin citas próximas.' %></p>
+    </section>
+  </div>
+<% } %>
+
+<% if (tab === 'historia') { %>
+  <section class="panel">
+    <div class="cabecera">
+      <h2>Historia clínica</h2>
+      <% if (usuario.esMedico) { %><a class="btn sec" href="/pacientes/<%= p.id %>/historia"><%= historia ? 'Actualizar' : 'Capturar' %> historia clínica</a><% } %>
+    </div>
+    <% if (!historia) { %>
+      <p class="vacio">Aún no se ha capturado la historia clínica.</p>
+    <% } else { %>
+      <dl class="datos ancho">
+        <% for (const [campo, etiqueta] of HISTORIA) { %>
+          <% if (campo === 'gineco_obstetricos' && p.sexo === 'M' && !historia[campo]) continue; %>
+          <dt><%= etiqueta %></dt><dd class="pre"><%= historia[campo] || 'Sin datos' %></dd>
+        <% } %>
+      </dl>
+      <p class="tenue">Actualizada el <%= f.fechaHora(historia.actualizado_en) %> por <%= historia.actualizado_por_nombre %>.</p>
+    <% } %>
+  </section>
+<% } %>
+
+<% if (tab === 'consultas') { %>
+  <% if (!consultas.length) { %><p class="vacio">Sin consultas registradas.</p><% } %>
+  <% for (const c of consultas) { %>
+    <article class="panel nota">
+      <header>
+        <a href="/consultas/<%= c.id %>"><strong><%= f.fechaHora(c.fecha) %></strong></a>
+        <span class="tenue">· <%= c.medico %></span>
+      </header>
+      <p><strong>Motivo:</strong> <%= c.motivo %></p>
+      <p class="pre"><strong>Diagnóstico:</strong> <%= c.diagnostico %><%= c.cie10 ? ' (' + c.cie10 + ')' : '' %></p>
+      <% if (c.plan) { %><p class="pre"><strong>Plan:</strong> <%= c.plan %></p><% } %>
+    </article>
+  <% } %>
+<% } %>
+
+<% if (tab === 'recetas') { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Folio</th><th>Fecha</th><th>Medicamentos</th><th>Médico</th><th></th></tr></thead>
+    <tbody>
+    <% for (const r of recetas) { %>
+      <tr>
+        <td class="mono"><a href="/recetas/<%= r.id %>"><%= r.folio %></a></td>
+        <td><%= f.fecha(r.fecha) %></td>
+        <td><%= r.medicamentos %></td>
+        <td><%= r.medico %></td>
+        <td class="der">
+          <a class="btn chico sec" href="/recetas/<%= r.id %>">Ver / imprimir</a>
+          <% if (usuario.esMedico) { %><a class="btn chico sec" href="/pacientes/<%= p.id %>/recetas/nueva?desde=<%= r.id %>">Repetir</a><% } %>
+        </td>
+      </tr>
+    <% } %>
+    <% if (!recetas.length) { %><tr><td colspan="5" class="vacio">Sin recetas.</td></tr><% } %>
+    </tbody>
+  </table></div>
+<% } %>
+
+<% if (tab === 'ordenes') { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Folio</th><th>Fecha</th><th>Tipo</th><th>Estudios</th><th>Médico</th><th></th></tr></thead>
+    <tbody>
+    <% for (const o of ordenes) { %>
+      <tr>
+        <td class="mono"><a href="/ordenes/<%= o.id %>"><%= o.folio %></a></td>
+        <td><%= f.fecha(o.fecha) %></td>
+        <td><%= TIPO_ORDEN[o.tipo] %></td>
+        <td><%= o.estudios.split('\n').join(' · ') %></td>
+        <td><%= o.medico %></td>
+        <td class="der"><a class="btn chico sec" href="/ordenes/<%= o.id %>">Ver / imprimir</a></td>
+      </tr>
+    <% } %>
+    <% if (!ordenes.length) { %><tr><td colspan="6" class="vacio">Sin órdenes de estudio. Los resultados se suben en la pestaña Archivos.</td></tr><% } %>
+    </tbody>
+  </table></div>
+<% } %>
+
+<% if (tab === 'certificados') { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Folio</th><th>Fecha</th><th>Tipo</th><th>Médico</th><th></th></tr></thead>
+    <tbody>
+    <% for (const c of certificados) { %>
+      <tr>
+        <td class="mono"><a href="/certificados/<%= c.id %>"><%= c.folio %></a></td>
+        <td><%= f.fecha(c.fecha) %></td>
+        <td><%= TIPO_CERT[c.tipo] %><%= c.tipo === 'INCAPACIDAD' ? ` · ${c.dias_reposo} días` : '' %></td>
+        <td><%= c.medico %></td>
+        <td class="der"><a class="btn chico sec" href="/certificados/<%= c.id %>">Ver / imprimir</a></td>
+      </tr>
+    <% } %>
+    <% if (!certificados.length) { %><tr><td colspan="5" class="vacio">Sin certificados.</td></tr><% } %>
+    </tbody>
+  </table></div>
+<% } %>
+
+<% if (tab === 'archivos') { %>
+  <form class="panel" method="post" enctype="multipart/form-data" action="/pacientes/<%= p.id %>/archivos?_csrf=<%= csrf %>">
+    <h2>Agregar archivos</h2>
+    <div class="rejilla tres">
+      <div class="ancho2"><label for="archivos">PDF, imágenes o documentos (hasta 10 a la vez)</label>
+        <input id="archivos" name="archivos" type="file" multiple required accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.txt,.doc,.docx,.xlsx"></div>
+      <div><label for="categoria">Categoría</label>
+        <select id="categoria" name="categoria"><% for (const c of CATEGORIAS) { %><option><%= c %></option><% } %></select></div>
+    </div>
+    <label for="descripcion">Descripción <span class="tenue">(opcional)</span></label>
+    <input id="descripcion" name="descripcion" maxlength="250" placeholder="Ej. Resultados de laboratorio del 30/10">
+    <p><button class="btn" type="submit">Subir</button></p>
+  </form>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Archivo</th><th>Categoría</th><th>Tamaño</th><th>Subido</th><th></th></tr></thead>
+    <tbody>
+    <% for (const a of archivos) { %>
+      <tr>
+        <td><a href="/archivos/<%= a.id %>" target="_blank" rel="noopener"><%= a.nombre_original %></a><% if (a.descripcion) { %><br><small class="tenue"><%= a.descripcion %></small><% } %></td>
+        <td><%= a.categoria %></td>
+        <td><%= f.tamano(a.tamano) %></td>
+        <td><%= f.fechaHora(a.subido_en) %><br><small class="tenue"><%= a.subido_por_nombre || '' %></small></td>
+        <td class="der">
+          <a class="btn chico sec" href="/archivos/<%= a.id %>?descargar=1">Descargar</a>
+          <% if (a.subido_por === usuario.id || usuario.esAdmin) { %>
+            <form class="en-linea" method="post" action="/archivos/<%= a.id %>/eliminar" onsubmit="return confirm('¿Eliminar este archivo del expediente?')">
+              <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn chico peligro" type="submit">Eliminar</button>
+            </form>
+          <% } %>
+        </td>
+      </tr>
+    <% } %>
+    <% if (!archivos.length) { %><tr><td colspan="5" class="vacio">Sin archivos adjuntos.</td></tr><% } %>
+    </tbody>
+  </table></div>
+<% } %>
+
+<% if (tab === 'citas') { %>
+  <p><a class="btn sec" href="/citas/nueva?paciente=<%= p.id %>">+ Agendar cita</a></p>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Fecha</th><th>Médico</th><th>Motivo</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+    <% for (const c of citas) { %>
+      <tr>
+        <td><%= f.fechaHora(c.inicio) %></td>
+        <td><%= c.medico %></td>
+        <td><%= c.motivo || '' %></td>
+        <td><span class="estado-texto estado-<%= c.estado.toLowerCase() %>"><%= ESTADO_CITA[c.estado] %></span></td>
+        <td class="der"><a class="btn chico sec" href="/citas/<%= c.id %>/editar">Editar</a></td>
+      </tr>
+    <% } %>
+    <% if (!citas.length) { %><tr><td colspan="5" class="vacio">Sin citas.</td></tr><% } %>
+    </tbody>
+  </table></div>
+<% } %>
+<%- include('../partials/pie') %>

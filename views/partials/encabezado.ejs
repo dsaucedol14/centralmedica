@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= titulo %> · Central Médica</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="icon" href="/static/img/favicon.png" type="image/png">
+</head>
+<body>
+<% if (usuario) { %>
+<header class="barra">
+  <a class="marca" href="/"><img src="/static/img/logo.png" alt=""> Central Médica</a>
+  <nav class="menu">
+    <a href="/" class="<%= ruta === '/' ? 'activo' : '' %>">Inicio</a>
+    <a href="/pacientes" class="<%= ruta.startsWith('/pacientes') || ruta.startsWith('/consultas') || ruta.startsWith('/recetas') || ruta.startsWith('/ordenes') || ruta.startsWith('/certificados') ? 'activo' : '' %>">Pacientes</a>
+    <a href="/agenda" class="<%= ruta.startsWith('/agenda') || ruta.startsWith('/citas') ? 'activo' : '' %>">Agenda</a>
+    <% if (usuario.esAdmin) { %>
+      <a href="/admin/usuarios" class="<%= ruta.startsWith('/admin') ? 'activo' : '' %>">Administración</a>
+    <% } %>
+  </nav>
+  <form class="buscador" action="/pacientes" method="get" role="search">
+    <input type="search" name="q" placeholder="Buscar paciente, expediente o CURP" aria-label="Buscar paciente">
+    <input type="hidden" name="ir" value="1">
+  </form>
+  <div class="sesion">
+    <a href="/cuenta" class="<%= ruta === '/cuenta' ? 'activo' : '' %>" title="Mi cuenta">
+      <%= usuario.nombre %> <span class="rol"><%= usuario.esMedico ? 'Médico' : 'Asistente' %><%= usuario.esAdmin ? ' · Admin' : '' %></span>
+    </a>
+    <form method="post" action="/logout"><input type="hidden" name="_csrf" value="<%= csrf %>"><button type="submit">Salir</button></form>
+  </div>
+</header>
+<% } %>
+<main>
+<% if (mensajes.ok) { %><div class="aviso ok"><%= mensajes.ok %></div><% } %>
+<% if (mensajes.error) { %><div class="aviso error"><%= mensajes.error %></div><% } %>

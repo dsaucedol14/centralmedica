@@ -1,0 +1,76 @@
+<%- include('../partials/encabezado') %>
+<h1>Nueva receta</h1>
+<p class="tenue"><a href="/pacientes/<%= p.id %>?tab=recetas">← <%= f.nombreCompleto(p) %></a> · Exp. <%= p.expediente %><%= p.fecha_nacimiento ? ' · ' + f.edad(p.fecha_nacimiento) : '' %></p>
+<div class="alergias <%= p.alergias ? '' : 'sin' %>"><strong>Alergias:</strong> <%= p.alergias || 'No registradas' %></div>
+<% if (!usuario.cedula) { %><div class="aviso info">Tu cédula profesional no está capturada. Agrégala en <a href="/cuenta">Mi cuenta</a> antes de emitir la receta.</div><% } %>
+<% if (error) { %><div class="aviso error"><%= error %></div><% } %>
+
+<form method="post" action="/pacientes/<%= p.id %>/recetas">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% if (r.consulta_id) { %><input type="hidden" name="consulta_id" value="<%= r.consulta_id %>"><% } %>
+  <fieldset>
+    <div class="rejilla tres">
+      <div><label for="fecha">Fecha</label><input id="fecha" name="fecha" type="date" value="<%= r.fecha %>" required></div>
+      <div class="ancho2"><label for="diagnostico">Diagnóstico <span class="tenue">(opcional en la receta)</span></label>
+        <input id="diagnostico" name="diagnostico" value="<%= r.diagnostico || '' %>" maxlength="300"></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Medicamentos</legend>
+    <div id="medicamentos">
+      <% const filas = medicamentos.length ? medicamentos : [{}]; %>
+      <% filas.forEach((m, i) => { %>
+        <div class="medicamento">
+          <span class="numero"><%= i + 1 %></span>
+          <div class="rejilla med">
+            <div class="ancho2"><label>Medicamento (genérico y comercial)</label><input name="medicamento" value="<%= m.medicamento || '' %>" maxlength="200"></div>
+            <div><label>Presentación</label><input name="presentacion" value="<%= m.presentacion || '' %>" maxlength="150"></div>
+            <div><label>Dosis</label><input name="dosis" value="<%= m.dosis || '' %>" maxlength="100"></div>
+            <div><label>Vía</label><input name="via" value="<%= m.via || '' %>" maxlength="50" list="vias"></div>
+            <div><label>Frecuencia</label><input name="frecuencia" value="<%= m.frecuencia || '' %>" maxlength="100"></div>
+            <div><label>Duración</label><input name="duracion" value="<%= m.duracion || '' %>" maxlength="100"></div>
+            <div class="ancho2"><label>Indicaciones</label><input name="indicaciones_med" value="<%= m.indicaciones || '' %>" maxlength="150"></div>
+          </div>
+          <button class="btn chico peligro quitar" type="button" title="Quitar medicamento">✕</button>
+        </div>
+      <% }) %>
+    </div>
+    <datalist id="vias"><option>Oral</option><option>Sublingual</option><option>Tópica</option><option>Oftálmica</option><option>Ótica</option><option>Nasal</option><option>Inhalada</option><option>Intramuscular</option><option>Intravenosa</option><option>Subcutánea</option><option>Rectal</option><option>Vaginal</option></datalist>
+    <button class="btn sec" type="button" id="agregar">+ Agregar medicamento</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Indicaciones generales</legend>
+    <p class="tenue">Dieta, reposo, signos de alarma, próxima cita. Si lo dejas vacío, el rótulo se imprime con espacio para escribir a mano.</p>
+    <textarea name="indicaciones" rows="3" maxlength="3000"><%= r.indicaciones || '' %></textarea>
+  </fieldset>
+
+  <p class="acciones">
+    <button class="btn" type="submit">Emitir receta</button>
+    <a class="btn sec" href="/pacientes/<%= p.id %>?tab=recetas">Cancelar</a>
+  </p>
+</form>
+<script>
+  (function () {
+    const lista = document.getElementById('medicamentos');
+    function renumerar() {
+      lista.querySelectorAll('.medicamento').forEach((m, i) => { m.querySelector('.numero').textContent = i + 1; });
+    }
+    document.getElementById('agregar').addEventListener('click', () => {
+      const nuevo = lista.querySelector('.medicamento').cloneNode(true);
+      nuevo.querySelectorAll('input').forEach((i) => { i.value = ''; });
+      lista.appendChild(nuevo);
+      renumerar();
+      nuevo.querySelector('input').focus();
+    });
+    lista.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('quitar')) return;
+      const filas = lista.querySelectorAll('.medicamento');
+      if (filas.length === 1) filas[0].querySelectorAll('input').forEach((i) => { i.value = ''; });
+      else e.target.closest('.medicamento').remove();
+      renumerar();
+    });
+  })();
+</script>
+<%- include('../partials/pie') %>

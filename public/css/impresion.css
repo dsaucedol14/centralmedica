@@ -1,0 +1,59 @@
+/* Documentos imprimibles: cada .hoja es una página (carta o media carta). */
+
+.barra-impresion { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+
+.hoja {
+  background: #fff; color: #000; margin: 0 auto 24px; box-shadow: 0 2px 12px rgba(0,0,0,.08); border: 1px solid var(--borde);
+  font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.4;
+  display: flex; flex-direction: column; max-width: 100%;
+}
+.hoja.carta { width: 216mm; min-height: 279mm; padding: 14mm 18mm; }
+.hoja.media-carta { width: 216mm; min-height: 139.7mm; padding: 8mm 12mm; font-size: 10pt; }
+
+.membrete { display: flex; justify-content: space-between; gap: 12mm; border-bottom: 2px solid #0f766e; padding-bottom: 3mm; margin-bottom: 4mm; font-size: 9pt; }
+.membrete .medico-nombre { font-size: 14pt; font-weight: 700; color: #0f766e; }
+.membrete-consultorio { text-align: right; }
+.consultorio-nombre { font-weight: 700; font-size: 11pt; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.consultorio-nombre img { height: 12mm; width: auto; }
+
+.doc-titulo { text-align: center; font-size: 13pt; letter-spacing: .06em; margin: 2mm 0 4mm; }
+.doc-paciente { width: 100%; border-collapse: collapse; margin-bottom: 3mm; font-size: inherit; }
+.doc-paciente td { border: 0; border-bottom: 1px solid #cfd8dc; padding: 1.2mm 2mm 1.2mm 0; background: transparent !important; }
+.doc-paciente .folio, .folio { text-align: right; font-family: Consolas, monospace; color: #444; white-space: nowrap; }
+.tenue-imp { color: #444; font-size: 9pt; }
+.doc-seccion { margin-bottom: 3mm; }
+.doc-seccion h3 { font-size: 10pt; text-transform: uppercase; letter-spacing: .04em; color: #0f766e; margin: 0 0 1mm; }
+.doc-seccion p { margin: 0; }
+.estudios li { margin-bottom: 1.5mm; }
+
+.firma { margin-top: auto; padding-top: 14mm; text-align: center; align-self: center; min-width: 70mm; }
+.firma .linea { border-top: 1px solid #000; margin-bottom: 1.5mm; }
+.firma.grande { padding-top: 26mm; }
+
+/* Receta */
+.receta .rx { font-size: 22pt; font-weight: 700; color: #0f766e; line-height: 1; margin: 1mm 0; }
+.receta-medicamentos { margin: 0 0 3mm; padding-left: 6mm; }
+.receta-medicamentos li { margin-bottom: 2mm; }
+.receta-indicaciones { margin-bottom: 2mm; }
+.receta-indicaciones.vacia { min-height: 10mm; }
+.receta-proxima { margin-bottom: 2mm; }
+.receta-pie { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 10mm; }
+.receta-pie .leyenda { font-size: 8pt; color: #444; max-width: 110mm; }
+.receta-pie .firma { margin: 0; padding-top: 10mm; }
+
+/* Certificado */
+.certificado { font-size: 12pt; line-height: 1.7; }
+.certificado .dirigido { margin: 6mm 0; }
+.certificado .cuerpo { text-align: justify; }
+.certificado .cierre { margin-top: 6mm; text-align: justify; }
+
+@media print {
+  body { background: #fff; }
+  .barra, .no-imprimir, .aviso { display: none !important; }
+  main { padding: 0; max-width: none; }
+  .hoja { margin: 0; border: 0; box-shadow: none; width: auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* Recetas, órdenes y certificados ocupan exactamente una hoja; la nota de consulta puede seguir en otra */
+  .hoja.fija.carta { min-height: 279mm; height: 279mm; overflow: hidden; }
+  .hoja.fija.media-carta { min-height: 139.7mm; height: 139.7mm; overflow: hidden; }
+  .hoja:not(.fija) { min-height: 0; }
+}

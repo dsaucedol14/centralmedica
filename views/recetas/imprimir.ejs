@@ -1,0 +1,42 @@
+<%- include('../partials/encabezado') %>
+<link rel="stylesheet" href="/static/css/impresion.css">
+<style>@page { size: 216mm 139.7mm; margin: 0; }</style>
+<%- include('../partials/barra-impresion', { pestana: 'recetas', nota: 'Media carta horizontal. En el diálogo de impresión elige el tamaño «Media carta» o «Statement».' }) %>
+
+<article class="hoja fija media-carta receta">
+  <%- include('../partials/membrete', { consultorio, medico }) %>
+  <table class="doc-paciente">
+    <tr>
+      <td><strong>Paciente:</strong> <%= f.nombreCompleto(p) %></td>
+      <td><strong>Edad:</strong> <%= f.edad(p.fecha_nacimiento, f.aFecha(r.fecha)) || '—' %></td>
+      <td><strong>Fecha:</strong> <%= f.fecha(r.fecha) %></td>
+      <td class="folio">Folio <%= r.folio %></td>
+    </tr>
+    <% if (consulta && (consulta.peso || consulta.talla || consulta.ta_sistolica || consulta.temperatura)) { %>
+    <tr><td colspan="4" class="tenue-imp">
+      <%= [consulta.peso ? `Peso ${consulta.peso} kg` : '', consulta.talla ? `Talla ${consulta.talla} m` : '',
+           consulta.ta_sistolica ? `TA ${consulta.ta_sistolica}/${consulta.ta_diastolica || '?'}` : '',
+           consulta.fc ? `FC ${consulta.fc}` : '', consulta.temperatura ? `Temp. ${consulta.temperatura} °C` : ''].filter(Boolean).join(' · ') %>
+    </td></tr>
+    <% } %>
+    <tr><td colspan="4"><strong>Alergias:</strong> <%= p.alergias || 'No registradas' %><%= r.diagnostico ? '   ·   Dx: ' + r.diagnostico : '' %></td></tr>
+  </table>
+
+  <div class="rx">℞</div>
+  <ol class="receta-medicamentos">
+    <% for (const m of medicamentos) { %>
+      <li>
+        <strong><%= m.medicamento %></strong><%= m.presentacion ? ', ' + m.presentacion : '' %>
+        <div><%= [m.dosis, m.via ? 'vía ' + m.via.toLowerCase() : '', m.frecuencia, m.duracion].filter(Boolean).join(', ') %><%= m.indicaciones ? '. ' + m.indicaciones : '' %>.</div>
+      </li>
+    <% } %>
+  </ol>
+  <div class="receta-indicaciones<%= r.indicaciones ? '' : ' vacia' %>"><strong>Indicaciones:</strong> <span class="pre"><%= r.indicaciones || '' %></span></div>
+  <% if (proximaCita) { %><div class="receta-proxima"><strong>Próxima consulta:</strong> <%= f.diaLargo(proximaCita.inicio) %> de <%= f.aFecha(proximaCita.inicio).getFullYear() %>, <%= f.hora(proximaCita.inicio) %> h</div><% } %>
+
+  <footer class="receta-pie">
+    <div class="leyenda"><%= consultorio.leyenda_receta || '' %></div>
+    <div class="firma"><div class="linea"></div><%= medico.nombre %></div>
+  </footer>
+</article>
+<%- include('../partials/pie') %>

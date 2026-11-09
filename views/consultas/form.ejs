@@ -1,0 +1,74 @@
+<%- include('../partials/encabezado') %>
+<% const v = (k) => (c[k] === null || c[k] === undefined ? '' : c[k]); %>
+<h1><%= c.id ? 'Corregir consulta' : 'Nueva consulta' %></h1>
+<p class="tenue"><a href="/pacientes/<%= p.id %>">← <%= f.nombreCompleto(p) %></a> · Exp. <%= p.expediente %>
+  <%= p.sexo === 'F' ? '· Mujer' : p.sexo === 'M' ? '· Hombre' : '' %><%= p.fecha_nacimiento ? ' · ' + f.edad(p.fecha_nacimiento) : '' %></p>
+<div class="alergias <%= p.alergias ? '' : 'sin' %>"><strong>Alergias:</strong> <%= p.alergias || 'No registradas' %></div>
+<% if (error) { %><div class="aviso error"><%= error %></div><% } %>
+
+<form method="post" action="<%= c.id ? '/consultas/' + c.id : '/pacientes/' + p.id + '/consultas' %>">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% if (citaId) { %><input type="hidden" name="cita_id" value="<%= citaId %>"><% } %>
+  <fieldset>
+    <legend>Motivo</legend>
+    <div class="rejilla tres">
+      <div><label for="fecha">Fecha y hora</label><input id="fecha" name="fecha" type="datetime-local" value="<%= c.fecha ? c.fecha.slice(0, 16).replace(' ', 'T') : '' %>" required></div>
+      <div class="ancho2"><label for="motivo">Motivo de consulta *</label><input id="motivo" name="motivo" value="<%= v('motivo') %>" maxlength="300" required autofocus></div>
+    </div>
+    <label for="padecimiento_actual">Padecimiento actual</label>
+    <textarea id="padecimiento_actual" name="padecimiento_actual" rows="4" placeholder="Inicio, evolución, síntomas acompañantes, tratamientos previos"><%= v('padecimiento_actual') %></textarea>
+  </fieldset>
+
+  <fieldset>
+    <legend>Signos vitales y somatometría</legend>
+    <div class="rejilla signos">
+      <div><label for="peso">Peso (kg)</label><input id="peso" name="peso" inputmode="decimal" value="<%= v('peso') %>"></div>
+      <div><label for="talla">Talla (m)</label><input id="talla" name="talla" inputmode="decimal" value="<%= v('talla') %>" placeholder="1.65"></div>
+      <div><label>IMC</label><output id="imc" class="calculado">—</output></div>
+      <div><label for="ta_sistolica">TA sistólica</label><input id="ta_sistolica" name="ta_sistolica" inputmode="numeric" value="<%= v('ta_sistolica') %>" placeholder="mmHg"></div>
+      <div><label for="ta_diastolica">TA diastólica</label><input id="ta_diastolica" name="ta_diastolica" inputmode="numeric" value="<%= v('ta_diastolica') %>" placeholder="mmHg"></div>
+      <div><label for="fc">FC (lpm)</label><input id="fc" name="fc" inputmode="numeric" value="<%= v('fc') %>"></div>
+      <div><label for="fr">FR (rpm)</label><input id="fr" name="fr" inputmode="numeric" value="<%= v('fr') %>"></div>
+      <div><label for="temperatura">Temp. (°C)</label><input id="temperatura" name="temperatura" inputmode="decimal" value="<%= v('temperatura') %>"></div>
+      <div><label for="spo2">SpO₂ (%)</label><input id="spo2" name="spo2" inputmode="numeric" value="<%= v('spo2') %>"></div>
+      <div><label for="glucosa">Glucosa (mg/dL)</label><input id="glucosa" name="glucosa" inputmode="numeric" value="<%= v('glucosa') %>"></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Exploración, diagnóstico y plan</legend>
+    <label for="exploracion">Exploración física</label>
+    <textarea id="exploracion" name="exploracion" rows="4" placeholder="Habitus exterior, cabeza y cuello, tórax, abdomen, extremidades, neurológico"><%= v('exploracion') %></textarea>
+    <div class="rejilla tres">
+      <div class="ancho2"><label for="diagnostico">Diagnóstico / impresión diagnóstica *</label>
+        <textarea id="diagnostico" name="diagnostico" rows="2" required><%= v('diagnostico') %></textarea></div>
+      <div><label for="cie10">Clave CIE-10 <span class="tenue">(opcional)</span></label><input id="cie10" name="cie10" value="<%= v('cie10') %>" maxlength="60" placeholder="J06.9" class="mayus"></div>
+    </div>
+    <label for="plan">Plan y tratamiento</label>
+    <textarea id="plan" name="plan" rows="3" placeholder="Tratamiento, estudios solicitados, recomendaciones, seguimiento"><%= v('plan') %></textarea>
+    <label for="pronostico">Pronóstico</label>
+    <input id="pronostico" name="pronostico" value="<%= v('pronostico') %>" maxlength="200" placeholder="Bueno para la vida y la función">
+  </fieldset>
+
+  <p class="acciones">
+    <button class="btn" type="submit"><%= c.id ? 'Guardar cambios' : 'Guardar consulta' %></button>
+    <a class="btn sec" href="<%= c.id ? '/consultas/' + c.id : '/pacientes/' + p.id %>">Cancelar</a>
+  </p>
+</form>
+<script>
+  (function () {
+    const peso = document.getElementById('peso'), talla = document.getElementById('talla'), salida = document.getElementById('imc');
+    const num = (el) => parseFloat(String(el.value).replace(',', '.'));
+    function calcular() {
+      const p = num(peso); let t = num(talla);
+      if (t > 3) t = t / 100;
+      if (p > 0 && t > 0) {
+        const v = p / (t * t);
+        const c = v < 18.5 ? 'bajo peso' : v < 25 ? 'normal' : v < 30 ? 'sobrepeso' : 'obesidad';
+        salida.textContent = v.toFixed(1) + ' · ' + c;
+      } else salida.textContent = '—';
+    }
+    peso.addEventListener('input', calcular); talla.addEventListener('input', calcular); calcular();
+  })();
+</script>
+<%- include('../partials/pie') %>

@@ -1,0 +1,43 @@
+<%- include('../partials/encabezado') %>
+<h1><%= u.id ? 'Editar usuario ' + u.usuario : 'Nuevo usuario' %></h1>
+<p class="tenue"><a href="/admin/usuarios">← Usuarios</a></p>
+<% if (error) { %><div class="aviso error"><%= error %></div><% } %>
+
+<form class="panel" method="post" action="<%= u.id ? '/admin/usuarios/' + u.id : '/admin/usuarios' %>">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="rejilla tres">
+    <% if (!u.id) { %>
+      <div><label for="usuario">Usuario</label><input id="usuario" name="usuario" value="<%= u.usuario || '' %>" pattern="[A-Za-z0-9._\-]{3,50}" autocomplete="off" required></div>
+    <% } %>
+    <div class="ancho2"><label for="nombre">Nombre completo</label><input id="nombre" name="nombre" value="<%= u.nombre || '' %>" maxlength="150" required placeholder="Dra. Ana López Cruz"></div>
+    <div><label for="rol">Rol</label>
+      <select id="rol" name="rol">
+        <option value="MEDICO" <%= u.rol === 'MEDICO' ? 'selected' : '' %>>Médico</option>
+        <option value="ASISTENTE" <%= u.rol === 'ASISTENTE' ? 'selected' : '' %>>Asistente / recepción</option>
+      </select></div>
+    <div><label for="password"><%= u.id ? 'Nueva contraseña (vacío = no cambiar)' : 'Contraseña (mínimo 8)' %></label>
+      <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" <%= u.id ? '' : 'required' %>></div>
+  </div>
+  <p>
+    <label class="casilla"><input type="checkbox" name="es_admin" value="1" <%= u.es_admin ? 'checked' : '' %>> Administrador (usuarios, datos del consultorio y bitácora)</label>
+    <% if (u.id) { %><label class="casilla"><input type="checkbox" name="activo" value="1" <%= u.activo ? 'checked' : '' %>> Activo (puede iniciar sesión)</label><% } else { %><input type="hidden" name="activo" value="1"><% } %>
+  </p>
+  <fieldset id="datos-medico">
+    <legend>Datos profesionales (salen en recetas y certificados)</legend>
+    <div class="rejilla dos">
+      <div><label for="cedula">Cédula profesional</label><input id="cedula" name="cedula" value="<%= u.cedula || '' %>" maxlength="30"></div>
+      <div><label for="universidad">Institución que expidió el título</label><input id="universidad" name="universidad" value="<%= u.universidad || '' %>" maxlength="200"></div>
+      <div><label for="especialidad">Especialidad</label><input id="especialidad" name="especialidad" value="<%= u.especialidad || '' %>" maxlength="120"></div>
+      <div><label for="cedula_especialidad">Cédula de especialidad</label><input id="cedula_especialidad" name="cedula_especialidad" value="<%= u.cedula_especialidad || '' %>" maxlength="30"></div>
+    </div>
+  </fieldset>
+  <p class="acciones"><button class="btn" type="submit">Guardar</button> <a class="btn sec" href="/admin/usuarios">Cancelar</a></p>
+</form>
+<script>
+  (function () {
+    const rol = document.getElementById('rol'), datos = document.getElementById('datos-medico');
+    const cambiar = () => { datos.hidden = rol.value !== 'MEDICO'; };
+    rol.addEventListener('change', cambiar); cambiar();
+  })();
+</script>
+<%- include('../partials/pie') %>

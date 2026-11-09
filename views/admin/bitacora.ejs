@@ -1,0 +1,31 @@
+<%- include('../partials/encabezado') %>
+<h1>Administración</h1>
+<%- include('../partials/menu-admin') %>
+<p class="tenue">Quién entró, consultó o modificó cada expediente. Se muestran hasta 1,000 movimientos.</p>
+<form class="filtros" method="get" action="/admin/bitacora">
+  <label>Desde <input type="date" name="desde" value="<%= desde %>"></label>
+  <label>Hasta <input type="date" name="hasta" value="<%= hasta %>"></label>
+  <select name="usuario" aria-label="Usuario">
+    <option value="">Todos los usuarios</option>
+    <% for (const u of usuarios) { %><option value="<%= u.id %>" <%= u.id === usuarioId ? 'selected' : '' %>><%= u.nombre %> (<%= u.usuario %>)</option><% } %>
+  </select>
+  <% if (paciente) { %><input type="hidden" name="paciente" value="<%= paciente.id %>"><span class="etiqueta">Paciente: <%= f.nombreCompleto(paciente) %> <a href="?desde=<%= desde %>&hasta=<%= hasta %>&usuario=<%= usuarioId || '' %>">✕</a></span><% } %>
+  <button class="btn sec" type="submit">Filtrar</button>
+</form>
+<div class="tabla-wrap"><table>
+  <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Qué</th><th>Paciente</th><th>Detalle</th></tr></thead>
+  <tbody>
+  <% for (const b of registros) { %>
+    <tr>
+      <td><%= f.fechaHora(b.fecha) %></td>
+      <td><%= b.usuario_nombre || '—' %></td>
+      <td><%= b.accion %></td>
+      <td><%= b.entidad.replace('_', ' ') %><%= b.entidad_id ? ' #' + b.entidad_id : '' %></td>
+      <td><% if (b.paciente_id) { %><a href="?paciente=<%= b.paciente_id %>&desde=<%= desde %>&hasta=<%= hasta %>"><%= b.nombre ? b.nombre + ' ' + b.apellido_paterno : '#' + b.paciente_id %></a><% } %></td>
+      <td><%= b.detalle || '' %></td>
+    </tr>
+  <% } %>
+  <% if (!registros.length) { %><tr><td colspan="6" class="vacio">Sin movimientos en ese periodo.</td></tr><% } %>
+  </tbody>
+</table></div>
+<%- include('../partials/pie') %>

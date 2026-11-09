@@ -1,0 +1,44 @@
+<%- include('../partials/encabezado') %>
+<h1>Nueva orden de estudios</h1>
+<p class="tenue"><a href="/pacientes/<%= p.id %>?tab=ordenes">← <%= f.nombreCompleto(p) %></a> · Exp. <%= p.expediente %></p>
+<% if (error) { %><div class="aviso error"><%= error %></div><% } %>
+
+<nav class="pestanas">
+  <% for (const [clave, etiqueta] of Object.entries(TIPOS_ORDEN)) { %>
+    <a class="<%= o.tipo === clave ? 'activo' : '' %>" href="?tipo=<%= clave %><%= o.consulta_id ? '&consulta=' + o.consulta_id : '' %>"><%= etiqueta %></a>
+  <% } %>
+</nav>
+
+<form method="post" action="/pacientes/<%= p.id %>/ordenes">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <input type="hidden" name="tipo" value="<%= o.tipo %>">
+  <% if (o.consulta_id) { %><input type="hidden" name="consulta_id" value="<%= o.consulta_id %>"><% } %>
+  <fieldset>
+    <div class="rejilla tres">
+      <div><label for="fecha">Fecha</label><input id="fecha" name="fecha" type="date" value="<%= o.fecha %>" required></div>
+      <div class="ancho2"><label for="diagnostico">Diagnóstico presuntivo / motivo del estudio *</label>
+        <input id="diagnostico" name="diagnostico" value="<%= o.diagnostico || '' %>" maxlength="300" required></div>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>Estudios solicitados</legend>
+    <% if (ESTUDIOS[o.tipo].length) { %>
+      <div class="casillas">
+        <% for (const e of ESTUDIOS[o.tipo]) { %>
+          <label class="casilla"><input type="checkbox" name="estudio" value="<%= e %>" <%= seleccion.includes(e) ? 'checked' : '' %>> <%= e %></label>
+        <% } %>
+      </div>
+    <% } %>
+    <label for="otros"><%= ESTUDIOS[o.tipo].length ? 'Otros estudios' : 'Estudios' %> <span class="tenue">(uno por renglón)</span></label>
+    <textarea id="otros" name="otros" rows="3" maxlength="3000"><%= otros %></textarea>
+  </fieldset>
+  <fieldset>
+    <legend>Indicaciones para el paciente</legend>
+    <textarea name="indicaciones" rows="2" maxlength="2000" placeholder="Ayuno, preparación, vejiga llena…"><%= o.indicaciones || '' %></textarea>
+  </fieldset>
+  <p class="acciones">
+    <button class="btn" type="submit">Emitir orden</button>
+    <a class="btn sec" href="/pacientes/<%= p.id %>?tab=ordenes">Cancelar</a>
+  </p>
+</form>
+<%- include('../partials/pie') %>

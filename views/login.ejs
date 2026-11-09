@@ -1,0 +1,16 @@
+<%- include('partials/encabezado') %>
+<section class="login">
+  <img src="/static/img/logo.png" alt="" class="login-icono">
+  <h1>Central Médica</h1>
+  <p class="tenue">Expediente clínico electrónico</p>
+  <form class="panel" method="post" action="/login">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% if (typeof error !== 'undefined' && error) { %><div class="aviso error"><%= error %></div><% } %>
+    <label for="usuario">Usuario</label>
+    <input id="usuario" name="usuario" value="<%= usuarioEscrito %>" autocomplete="username" autofocus required>
+    <label for="password">Contraseña</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button class="btn ancho" type="submit">Entrar</button>
+  </form>
+</section>
+<%- include('partials/pie') %>
