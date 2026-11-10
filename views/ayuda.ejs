@@ -1,0 +1,332 @@
+<%- include('partials/encabezado') %>
+<div class="manual">
+  <nav class="manual-indice no-imprimir" aria-label="Índice del manual">
+    <% if (!usuario) { %><p><a href="/login">← Volver a iniciar sesión</a></p><% } %>
+    <strong>Contenido</strong>
+    <ol>
+      <li><a href="#inicio">Primeros pasos</a></li>
+      <li><a href="#pacientes">Pacientes y expedientes</a></li>
+      <li><a href="#historia">Historia clínica</a></li>
+      <li><a href="#consultas">Consultas</a></li>
+      <li><a href="#recetas">Recetas</a></li>
+      <li><a href="#ordenes">Órdenes de estudio y certificados</a></li>
+      <li><a href="#archivos">Archivos del expediente</a></li>
+      <li><a href="#agenda">Agenda y citas</a></li>
+      <li><a href="#recepcion">Recepción y sala de espera</a></li>
+      <li><a href="#cuenta">Mi cuenta</a></li>
+      <li><a href="#admin">Administración</a></li>
+      <li><a href="#respaldos">Respaldos</a></li>
+      <li><a href="#preguntas">Preguntas frecuentes</a></li>
+      <li><a href="#glosario">Palabras que conviene conocer</a></li>
+    </ol>
+    <button class="btn sec chico" type="button" onclick="window.print()">Imprimir manual</button>
+  </nav>
+
+  <article class="manual-texto">
+    <h1>Manual de usuario de Central Médica</h1>
+    <p class="tenue">Guía paso a paso para usar el sistema de expedientes clínicos. No necesitas saber de computación: sigue los pasos en orden y fíjate en los nombres de los botones, que aparecen en <strong>negritas</strong>.</p>
+
+    <section id="inicio">
+      <h2>1. Primeros pasos</h2>
+      <h3>Entrar al sistema</h3>
+      <ol>
+        <li>Abre el navegador de internet (Chrome, Edge o Firefox) y escribe la dirección del sistema que te dio el administrador.</li>
+        <li>Escribe tu <strong>Usuario</strong> y tu <strong>Contraseña</strong>.</li>
+        <li>Presiona <strong>Entrar</strong>.</li>
+      </ol>
+      <p>Si te equivocas 5 veces seguidas, el sistema te pide esperar 5 minutos antes de volver a intentar. Es una protección contra intrusos.</p>
+      <h3>La pantalla de inicio</h3>
+      <p>Al entrar verás un resumen del día: cuántos pacientes hay, las consultas y recetas del mes, las <strong>citas de hoy</strong> y los pacientes <strong>atendidos recientemente</strong>. Desde ahí puedes crear un <strong>+ Nuevo paciente</strong> o <strong>+ Agendar cita</strong>.</p>
+      <h3>La barra de arriba</h3>
+      <ul>
+        <li><strong>Inicio</strong>: regresa a la pantalla de resumen.</li>
+        <li><strong>Pacientes</strong>: la lista de todos los expedientes.</li>
+        <li><strong>Sala de espera</strong>: los pacientes que envió recepción; el número indica cuántos te esperan.</li>
+        <li><strong>Agenda</strong>: las citas de la semana.</li>
+        <li><strong>Recepción</strong>: para recibir pacientes y enviarlos con el médico (la ven asistentes y administradores).</li>
+        <li><strong>Administración</strong>: solo la ven los administradores.</li>
+        <li><strong>Ayuda</strong>: este manual.</li>
+        <li>El cuadro <strong>Buscar paciente</strong>: escribe un nombre, número de expediente o CURP y presiona Enter.</li>
+        <li>Tu nombre (abre <strong>Mi cuenta</strong>) y <strong>Salir</strong>.</li>
+      </ul>
+      <div class="aviso info">Cuando termines de trabajar, presiona siempre <strong>Salir</strong>, sobre todo si la computadora la usan otras personas. Por seguridad, la sesión también se cierra sola después de 8 horas sin usarla.</div>
+      <h3>Quién puede hacer qué</h3>
+      <ul>
+        <li><strong>Médico</strong>: atiende consultas, llena la historia clínica y emite recetas, órdenes de estudio y certificados.</li>
+        <li><strong>Asistente</strong>: da de alta pacientes, maneja la agenda, sube archivos y reimprime documentos.</li>
+        <li><strong>Recepción</strong>: solo usa el módulo de Recepción: busca o registra a los pacientes que llegan y los envía con el médico. No ve expedientes ni información médica.</li>
+        <li><strong>Administrador</strong>: además de lo anterior, maneja los usuarios, los datos del consultorio, la bitácora y los respaldos.</li>
+      </ul>
+    </section>
+
+    <section id="pacientes">
+      <h2>2. Pacientes y expedientes</h2>
+      <h3>Buscar a un paciente</h3>
+      <ol>
+        <li>Escribe en el cuadro <strong>Buscar paciente</strong> de la barra de arriba, o entra a <strong>Pacientes</strong>.</li>
+        <li>Puedes buscar por nombre o apellidos (no importan los acentos ni las mayúsculas), por número de expediente, por CURP o por teléfono.</li>
+        <li>Haz clic en el nombre del paciente para abrir su expediente.</li>
+      </ol>
+      <p>Si buscas «saucedo leon» encontrarás también a «SAUCEDO LEÓN».</p>
+      <h3>Dar de alta un paciente nuevo</h3>
+      <ol>
+        <li>Antes de crearlo, <strong>búscalo</strong> para no duplicarlo.</li>
+        <li>Presiona <strong>+ Nuevo paciente</strong>.</li>
+        <li>Llena al menos <strong>Nombre(s)</strong> y <strong>Primer apellido</strong> (los campos con * son obligatorios). Lo demás puedes completarlo después.</li>
+        <li>En <strong>Alergias</strong> escribe a qué es alérgico, o «Negadas» si no tiene. Las alergias se ven resaltadas en todo el expediente y en las recetas.</li>
+        <li>Presiona <strong>Crear expediente</strong>. El sistema le asigna solo un número de expediente.</li>
+      </ol>
+      <h3>El expediente</h3>
+      <p>Arriba está el nombre, la edad y las alergias. Debajo hay botones para lo más común: <strong>+ Consulta</strong>, <strong>Receta</strong>, <strong>Orden de estudios</strong>, <strong>Certificado</strong>, <strong>Agendar cita</strong> y <strong>Editar datos</strong>. Más abajo hay pestañas:</p>
+      <ul>
+        <li><strong>Resumen</strong>: datos generales, última consulta y próxima cita.</li>
+        <li><strong>Historia clínica</strong>, <strong>Consultas</strong>, <strong>Recetas</strong>, <strong>Estudios</strong>, <strong>Certificados</strong>, <strong>Archivos</strong> y <strong>Citas</strong>: todo lo que se ha hecho con ese paciente.</li>
+      </ul>
+      <h3>Archivar un expediente</h3>
+      <p>Un administrador puede presionar <strong>Archivar expediente</strong> cuando un paciente ya no se atiende. El expediente <strong>no se borra</strong> (la ley pide conservarlo), solo deja de salir en la lista. Para verlo, en <strong>Pacientes</strong> marca <strong>Incluir archivados</strong>. Se puede reactivar en cualquier momento.</p>
+      <div class="aviso info">Los pacientes que vienen del sistema anterior conservan su mismo número de expediente. Sus notas antiguas aparecen en la pestaña <strong>Consultas</strong> con el motivo «Nota del sistema anterior» o «Historial del sistema anterior».</div>
+    </section>
+
+    <section id="historia">
+      <h2>3. Historia clínica</h2>
+      <p>Solo los médicos la llenan. En el expediente, entra a la pestaña <strong>Historia clínica</strong> y presiona el botón para editarla. Tiene apartados para antecedentes familiares, enfermedades previas, hábitos, antecedentes gineco-obstétricos, cirugías, medicamentos actuales y vacunas. Llena lo que sepas y presiona guardar; puedes completarla en otra visita.</p>
+    </section>
+
+    <section id="consultas">
+      <h2>4. Consultas (nota médica)</h2>
+      <ol>
+        <li>En el expediente presiona <strong>+ Consulta</strong>. Si el paciente tenía cita, también puedes presionar <strong>Atender</strong> desde la agenda o desde la pantalla de inicio; así la cita queda marcada como atendida.</li>
+        <li>Escribe el <strong>Motivo de consulta</strong> (obligatorio) y el padecimiento actual.</li>
+        <li>Captura los <strong>signos vitales</strong>. Al escribir peso y talla, el sistema calcula solo el <strong>IMC</strong> (índice de masa corporal) y te dice si es normal, bajo peso, sobrepeso u obesidad.</li>
+        <li>Escribe la exploración física, el <strong>Diagnóstico</strong> (obligatorio), la clave CIE-10 si la conoces, el plan y el pronóstico.</li>
+        <li>Presiona <strong>Guardar consulta</strong>.</li>
+      </ol>
+      <p>Desde la consulta guardada puedes hacer la receta, la orden de estudios o el certificado de esa misma visita, e <strong>Imprimir</strong> la nota médica.</p>
+      <p><strong>Corregir una consulta:</strong> solo el médico que la hizo puede corregirla, con el botón <strong>Corregir</strong>.</p>
+    </section>
+
+    <section id="recetas">
+      <h2>5. Recetas</h2>
+      <ol>
+        <li>En el expediente o en la consulta presiona <strong>Receta</strong>.</li>
+        <li>Revisa la fecha y, si quieres, el diagnóstico.</li>
+        <li>Llena cada medicamento: nombre, presentación, dosis, vía, frecuencia, duración e indicaciones. Los cuadros vacíos <strong>están realmente vacíos</strong>: lo que no escribas no saldrá en la receta.</li>
+        <li>Para más medicamentos presiona <strong>+ Agregar medicamento</strong>; para quitar uno, la <strong>✕</strong>.</li>
+        <li>Escribe las <strong>Indicaciones generales</strong> (dieta, reposo, signos de alarma…).</li>
+        <li>Presiona <strong>Emitir receta</strong>. Se abre lista para imprimir.</li>
+      </ol>
+      <h3>Cómo sale impresa</h3>
+      <ul>
+        <li>En <strong>media carta horizontal</strong>. Al imprimir, elige el tamaño «Media carta» o «Statement».</li>
+        <li>Arriba lleva el logo, «CENTRAL MÉDICA», el nombre del médico, su cédula, especialidad, universidad y los datos del consultorio.</li>
+        <li>Cada receta tiene un <strong>folio</strong> consecutivo por año, por ejemplo R-2026-0001.</li>
+        <li>La leyenda <strong>Indicaciones</strong> siempre aparece. Si no escribiste indicaciones, queda el espacio para escribirlas a mano.</li>
+        <li>Si el paciente tiene una cita agendada, sale la fecha de la <strong>Próxima consulta</strong>. Agenda la cita <em>antes</em> de imprimir la receta.</li>
+      </ul>
+      <p><strong>Repetir una receta:</strong> en la pestaña <strong>Recetas</strong> del expediente presiona <strong>Repetir</strong>: se copia la receta anterior para que solo la revises y la emitas.</p>
+      <div class="aviso info">Para emitir recetas y certificados, el médico debe tener capturada su <strong>cédula profesional</strong> en <a href="#cuenta">Mi cuenta</a>.</div>
+    </section>
+
+    <section id="ordenes">
+      <h2>6. Órdenes de estudio y certificados</h2>
+      <h3>Orden de estudios</h3>
+      <ol>
+        <li>Presiona <strong>Orden de estudios</strong>.</li>
+        <li>Escribe el diagnóstico o motivo del estudio, elige el tipo (laboratorio, imagen y gabinete u otros) y marca los estudios de la lista. Si no está el que buscas, escríbelo.</li>
+        <li>Presiona <strong>Emitir orden</strong> e imprímela.</li>
+      </ol>
+      <h3>Modificar o eliminar una orden</h3>
+      <p>En el expediente, pestaña <strong>Estudios</strong>, cada orden tiene dos íconos a la derecha:</p>
+      <ul>
+        <li><strong>Lápiz</strong> (modificar): abre la orden para cambiar la fecha, el tipo, el diagnóstico, los estudios o las indicaciones. Presiona <strong>Guardar cambios</strong>. La orden conserva su mismo folio; si ya la habías impreso, vuelve a imprimirla.</li>
+        <li><strong>Bote de basura</strong> (eliminar): borra la orden después de pedirte confirmación. No se puede deshacer.</li>
+      </ul>
+      <p>Solo el médico que emitió la orden o un administrador ven estos íconos. Cada cambio y cada eliminación quedan anotados en la bitácora, con los estudios que tenía la orden.</p>
+      <h3>Certificados</h3>
+      <p>Hay tres tipos: <strong>buena salud</strong>, <strong>incapacidad o reposo</strong> y <strong>constancia de asistencia a consulta</strong>.</p>
+      <ol>
+        <li>Presiona <strong>Certificado</strong> y elige el tipo.</li>
+        <li>Llena los datos que pide: a quién va dirigido, para qué se expide, el diagnóstico, los días de reposo o el horario de la consulta, según el tipo.</li>
+        <li>Presiona <strong>Emitir certificado</strong>. El texto queda redactado y guardado tal como se imprimió.</li>
+      </ol>
+      <p>Cualquier documento ya emitido se puede volver a imprimir con <strong>Ver / imprimir</strong> desde su pestaña en el expediente.</p>
+    </section>
+
+    <section id="archivos">
+      <h2>7. Archivos del expediente</h2>
+      <p>Sirve para guardar resultados de laboratorio, radiografías, identificaciones, consentimientos firmados, etc.</p>
+      <ol>
+        <li>En el expediente abre la pestaña <strong>Archivos</strong>.</li>
+        <li>Elige los archivos (PDF, fotos o documentos de Word/Excel; hasta 10 a la vez).</li>
+        <li>Escoge la categoría, agrega una descripción si quieres y presiona <strong>Subir</strong>.</li>
+      </ol>
+      <p>Para verlos, haz clic en su nombre; para guardarlos en tu computadora, <strong>Descargar</strong>. Solo quien subió el archivo o un administrador pueden eliminarlo.</p>
+    </section>
+
+    <section id="agenda">
+      <h2>8. Agenda y citas</h2>
+      <h3>Ver la agenda</h3>
+      <p>En <strong>Agenda</strong> se ve la semana por días. Usa <strong>Semana anterior</strong>, <strong>Hoy</strong> y <strong>Semana siguiente</strong> para moverte, y el selector de médico para ver la agenda de uno o de todos.</p>
+      <h3>Agendar una cita</h3>
+      <ol>
+        <li>Presiona <strong>+ Nueva cita</strong>, o <strong>+ cita</strong> en el día que quieras.</li>
+        <li>Busca al paciente escribiendo su nombre. Si todavía no tiene expediente, escribe su nombre y teléfono; después podrás ligarlo con <strong>Ligar expediente</strong>.</li>
+        <li>Elige el médico, la fecha, la hora y la duración. Escribe el motivo si quieres.</li>
+        <li>Guarda. Si el médico ya tiene otra cita a esa hora, el sistema te avisa para que elijas otro horario.</li>
+      </ol>
+      <h3>Estado de la cita</h3>
+      <p>En cada cita hay un selector para marcarla como <strong>Programada</strong>, <strong>Confirmada</strong>, <strong>Atendida</strong>, <strong>Cancelada</strong> o <strong>No asistió</strong>.</p>
+      <h3>Bloquear un día en que el médico no dará consultas</h3>
+      <ol>
+        <li>En <strong>Agenda</strong>, elige al médico en el selector de arriba.</li>
+        <li>En el día que corresponda, abre <strong>Bloquear día</strong>, escribe el motivo si quieres (por ejemplo «Congreso médico») y presiona <strong>No dar consultas este día</strong>.</li>
+        <li>El día aparece sombreado con el aviso «No da consultas». Nadie podrá agendar citas con ese médico ese día.</li>
+        <li>Para quitar el bloqueo presiona <strong>Desbloquear</strong>.</li>
+      </ol>
+      <p>Solo el propio médico o un administrador pueden bloquear o desbloquear días. Si ese día ya había citas, el sistema avisa cuántas son para que se reprogramen o cancelen.</p>
+    </section>
+
+    <section id="recepcion">
+      <h2>9. Recepción y sala de espera</h2>
+      <h3>Para la recepcionista: recibir a un paciente</h3>
+      <p>Al entrar, la recepcionista ve directamente la pantalla <strong>Recepción</strong>. El trabajo tiene tres pasos:</p>
+      <ol>
+        <li><strong>Buscar al paciente.</strong> Escribe su nombre, apellidos, número de expediente, CURP o teléfono y presiona <strong>Buscar</strong>.</li>
+        <li><strong>Registrar o revisar sus datos.</strong>
+          <ul>
+            <li>Si <strong>no aparece</strong>, presiona <strong>+ Registrar paciente nuevo</strong>, llena sus datos generales (nombre, apellidos, fecha de nacimiento, teléfono, domicilio…) y pregúntale si es alérgico a algo. Presiona <strong>Registrar y continuar</strong>. El sistema le da su número de expediente.</li>
+            <li>Si <strong>ya existe</strong> y cambió algún dato (por ejemplo su teléfono), presiona <strong>Actualizar datos</strong>.</li>
+          </ul>
+        </li>
+        <li><strong>Enviarlo a consulta.</strong> Presiona <strong>Enviar a consulta</strong>, elige con qué médico pasa, escribe el motivo de la visita si el paciente lo dice y, si hace falta, una nota para el médico. Presiona <strong>Enviar a consulta</strong>.</li>
+      </ol>
+      <p>Al médico le llega en ese momento un aviso en su pantalla. El paciente aparece en la <strong>Sala de espera de hoy</strong>, abajo en la misma pantalla de Recepción, con el médico que lo atenderá y si sigue esperando o ya pasó a consulta.</p>
+      <ul>
+        <li>Si el paciente tiene <strong>cita hoy</strong>, el sistema lo avisa y ya deja seleccionado a su médico.</li>
+        <li>Los médicos que <strong>no dan consultas hoy</strong> aparecen en gris y no se pueden elegir.</li>
+        <li>Bajo el nombre de cada médico se ve cuántos pacientes tiene esperando.</li>
+        <li>Si el paciente se va o se equivocó de médico, presiona <strong>Cancelar envío</strong> y, si es necesario, envíalo de nuevo con el médico correcto.</li>
+        <li>Un paciente no puede estar dos veces en la sala de espera al mismo tiempo.</li>
+      </ul>
+      <h3>Para el médico: el aviso de paciente nuevo</h3>
+      <p>Cuando recepción envía a un paciente, en la pantalla del médico aparece abajo a la derecha un aviso <strong>«Nuevo paciente en espera»</strong> con sus datos generales: nombre, expediente, edad, sexo, teléfono, <strong>alergias</strong> (en rojo), motivo de la visita y la hora en que llegó. También suena un tono corto y el título de la pestaña lo anuncia.</p>
+      <ul>
+        <li><strong>Pasar a consulta</strong>: abre la nota médica del paciente con el motivo ya escrito. Al guardar la consulta, el paciente sale de la sala de espera como «atendido».</li>
+        <li><strong>Ver sala de espera</strong>: muestra todos los pacientes que te esperan.</li>
+        <li><strong>Enterado</strong>: cierra el aviso; el paciente sigue en la sala de espera.</li>
+      </ul>
+      <p>El aviso aparece en cualquier pantalla del sistema en la que estés y se queda hasta que lo atiendas. En la barra de arriba, <strong>Sala de espera</strong> muestra un número con cuántos pacientes te esperan.</p>
+      <h3>La sala de espera</h3>
+      <p>En <strong>Sala de espera</strong> cada paciente aparece con sus datos generales y cuántos minutos lleva esperando. Puedes ver solo los tuyos o los de <strong>todos los médicos</strong>. Si un médico cubre a otro, puede pasar a cualquier paciente y el sistema se lo asigna. Si abriste una consulta por error, usa <strong>Regresar a espera</strong>.</p>
+      <div class="aviso info">El sonido del aviso puede no escucharse hasta que hagas clic en algún lugar de la página: los navegadores lo bloquean al principio. El aviso visual siempre aparece.</div>
+    </section>
+
+    <section id="cuenta">
+      <h2>10. Mi cuenta</h2>
+      <p>Haz clic en tu nombre, arriba a la derecha.</p>
+      <ul>
+        <li><strong>Datos</strong>: los médicos capturan aquí su nombre, cédula profesional, institución que expidió el título, especialidad y cédula de especialidad. Así salen en recetas y certificados.</li>
+        <li><strong>Cambiar contraseña</strong>: escribe la actual, la nueva (mínimo 8 caracteres) y confírmala.</li>
+      </ul>
+      <p><strong>¿Olvidaste tu contraseña?</strong> Pide al administrador que te asigne una nueva desde Administración → Usuarios, y cámbiala al entrar.</p>
+    </section>
+
+    <section id="admin">
+      <h2>11. Administración</h2>
+      <p>Solo para administradores. Tiene cuatro pestañas:</p>
+      <ul>
+        <li><strong>Usuarios</strong>: crea cuentas para médicos y asistentes, cambia su rol, restablece su contraseña o desactívalas cuando alguien deja de trabajar en la clínica (no se borran, para conservar el historial). Siempre debe quedar al menos un administrador.</li>
+        <li><strong>Datos del consultorio</strong>: nombre, dirección, ciudad, teléfono, correo, horario y la leyenda al pie de la receta. Salen en todos los documentos impresos.</li>
+        <li><strong>Bitácora</strong>: registro de quién hizo qué y cuándo (quién entró, quién vio o cambió un expediente, quién emitió un documento). Puedes filtrar por fechas, usuario o paciente.</li>
+        <li><strong>Respaldos</strong>: copias de seguridad de toda la información. Ve la sección siguiente.</li>
+      </ul>
+    </section>
+
+    <section id="respaldos">
+      <h2>12. Respaldos (copias de seguridad)</h2>
+      <p>Un <strong>respaldo</strong> es una copia de toda la información del sistema guardada en un solo archivo. Si la computadora se descompone, se pierde o se borra algo por error, con el respaldo se puede recuperar todo hasta el día en que se hizo.</p>
+      <div class="aviso info"><strong>Recomendación:</strong> genera un respaldo <strong>al menos una vez por semana</strong> (mejor diario) y guarda una copia <strong>fuera de la computadora</strong>: en una memoria USB, un disco externo o tu nube. Un respaldo que solo está en la misma computadora se pierde junto con ella.</div>
+
+      <h3>Generar un respaldo</h3>
+      <ol>
+        <li>Entra a <strong>Administración → Respaldos</strong>.</li>
+        <li>En <strong>Generar un respaldo</strong>, deja marcada la casilla <strong>Incluir los archivos adjuntos</strong> si quieres guardar también los estudios e imágenes de los expedientes (recomendado). Sin ella, el archivo es más chico y solo guarda la información capturada.</li>
+        <li>Presiona <strong>Generar respaldo</strong> y espera; puede tardar unos minutos. No cierres la página.</li>
+        <li>El respaldo aparece en la lista <strong>Respaldos guardados</strong>.</li>
+      </ol>
+
+      <h3>Descargarlo y guardarlo</h3>
+      <ol>
+        <li>En la lista, presiona <strong>Descargar</strong>. Se guarda en tu carpeta de Descargas un archivo con un nombre como <em>central-medica_2026-11-09_183000_completo.zip</em> (lleva la fecha y la hora).</li>
+        <li>Copia ese archivo a tu memoria USB, disco externo o nube.</li>
+      </ol>
+      <p>El botón <strong>Solo base de datos</strong> descarga únicamente la información capturada, en un archivo aparte terminado en <em>.sql</em>. Normalmente no lo necesitas; sirve si un técnico te lo pide para revisarlo o pasarlo a otro servidor.</p>
+
+      <h3>Importar un respaldo</h3>
+      <p>Sirve para traer un respaldo que guardaste fuera (por ejemplo, de tu memoria USB) o para pasar la información a otra computadora con el sistema.</p>
+      <ol>
+        <li>En <strong>Importar un respaldo</strong>, presiona el botón para elegir el archivo y busca el <em>.zip</em> del respaldo.</li>
+        <li>Presiona <strong>Importar</strong>.</li>
+        <li>El sistema revisa que sea un respaldo válido y lo agrega a la lista con la etiqueta «importado». <strong>Importar no cambia nada</strong> de la información actual.</li>
+      </ol>
+
+      <h3>Restaurar un respaldo</h3>
+      <div class="aviso error"><strong>Cuidado:</strong> restaurar <strong>reemplaza toda la información actual</strong> por la del respaldo. Todo lo que se capturó después de la fecha del respaldo dejará de verse. Úsalo solo cuando de verdad necesites recuperar información.</div>
+      <ol>
+        <li>Pide a los demás usuarios que dejen de usar el sistema.</li>
+        <li>En la lista, junto al respaldo que quieres, presiona <strong>Restaurar…</strong>.</li>
+        <li>Revisa la fecha y lo que contiene. Si trae archivos adjuntos, decide si también los quieres restaurar.</li>
+        <li>Escribe la palabra <strong>RESTAURAR</strong> y tu contraseña, y presiona <strong>Restaurar este respaldo</strong>.</li>
+        <li>Espera sin cerrar la página. Al terminar, el sistema te pide iniciar sesión de nuevo (a todos los usuarios).</li>
+      </ol>
+      <p><strong>Red de seguridad:</strong> justo antes de restaurar, el sistema guarda solo un respaldo de cómo estaba todo, marcado como «automático, antes de restaurar». Si te equivocaste de respaldo, restaura ese y todo regresa a como estaba. Y si algo falla a mitad de la restauración, el sistema regresa solo al estado anterior.</p>
+
+      <h3>Eliminar respaldos viejos</h3>
+      <p>Los respaldos ocupan espacio. Puedes borrar los antiguos con <strong>Eliminar</strong>, pero conserva siempre los más recientes y asegúrate de tener copia fuera de la computadora.</p>
+      <div class="aviso info">Los respaldos contienen expedientes clínicos, que son datos personales sensibles. No los mandes por correo ni los compartas, y guarda la memoria o el disco en un lugar seguro.</div>
+    </section>
+
+    <section id="preguntas">
+      <h2>13. Preguntas frecuentes</h2>
+      <dl class="preguntas">
+        <dt>No puedo entrar: dice «Usuario o contraseña incorrectos».</dt>
+        <dd>Revisa que no esté activada la tecla de mayúsculas (Bloq Mayús). Si olvidaste la contraseña, pide al administrador que te asigne una nueva.</dd>
+        <dt>Dice «El formulario caducó» o «Sesión vencida».</dt>
+        <dd>Pasó mucho tiempo con la página abierta. Regresa, recarga la página (tecla F5) y vuelve a intentarlo.</dd>
+        <dt>No me aparece el botón para hacer consultas o recetas.</dt>
+        <dd>Esas acciones son solo para usuarios con rol de médico. Si eres médico, pide al administrador que revise tu rol.</dd>
+        <dt>No puedo agendar una cita en cierto día.</dt>
+        <dd>Probablemente el médico bloqueó ese día. En la agenda verás el aviso «No da consultas». Elige otro día u otro médico.</dd>
+        <dt>La receta no se imprime bien o sale cortada.</dt>
+        <dd>En la ventana de impresión elige el tamaño de papel «Media carta» o «Statement», orientación horizontal y márgenes «Ninguno».</dd>
+        <dt>En la receta no salen la dirección o el teléfono.</dt>
+        <dd>Un administrador debe capturarlos en Administración → Datos del consultorio.</dd>
+        <dt>Me equivoqué en una consulta.</dt>
+        <dd>El médico que la hizo puede corregirla con el botón Corregir. Los documentos ya emitidos no se modifican; si hace falta, emite uno nuevo.</dd>
+        <dt>¿Se puede borrar un paciente?</dt>
+        <dd>No. Por ley el expediente se conserva. Un administrador puede archivarlo para que no aparezca en la lista.</dd>
+        <dt>Algo dejó de funcionar o salió un mensaje de error.</dt>
+        <dd>Anota qué estabas haciendo y el mensaje que apareció, y avisa al administrador del sistema.</dd>
+      </dl>
+    </section>
+
+    <section id="glosario">
+      <h2>14. Palabras que conviene conocer</h2>
+      <dl class="preguntas">
+        <dt>Expediente</dt><dd>Toda la información de un paciente: sus datos, historia clínica, consultas, documentos y archivos.</dd>
+        <dt>Navegador</dt><dd>El programa con el que entras a internet: Chrome, Edge, Firefox o Safari.</dd>
+        <dt>Usuario y contraseña</dt><dd>Tu nombre de acceso y tu clave secreta. No los compartas con nadie.</dd>
+        <dt>Sesión</dt><dd>El tiempo que estás dentro del sistema, desde que entras hasta que presionas Salir.</dd>
+        <dt>Folio</dt><dd>Número único de cada receta, orden o certificado, para identificarlo.</dd>
+        <dt>Bitácora</dt><dd>Registro automático de quién hizo qué en el sistema y cuándo.</dd>
+        <dt>Respaldo</dt><dd>Copia de seguridad de toda la información, en un solo archivo .zip.</dd>
+        <dt>Restaurar</dt><dd>Volver a poner en el sistema la información de un respaldo, reemplazando la actual.</dd>
+        <dt>Base de datos</dt><dd>El lugar donde el sistema guarda ordenadamente toda la información capturada.</dd>
+        <dt>Archivo .zip</dt><dd>Un archivo «paquete» que contiene otros archivos dentro, como una carpeta comprimida.</dd>
+        <dt>CIE-10</dt><dd>Catálogo internacional de claves para los diagnósticos.</dd>
+        <dt>IMC</dt><dd>Índice de masa corporal: relación entre el peso y la estatura.</dd>
+      </dl>
+    </section>
+  </article>
+</div>
+<%- include('partials/pie') %>

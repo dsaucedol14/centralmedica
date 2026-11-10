@@ -16,6 +16,18 @@
 .consultorio-nombre { font-weight: 700; font-size: 11pt; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 .consultorio-nombre img { height: 12mm; width: auto; }
 
+/* Membrete con el formato tradicional de Central Médica */
+.membrete-cm { position: relative; text-align: center; border-bottom: 1px solid #555; padding-bottom: 1.5mm; margin-bottom: 3mm; font-family: Arial, Helvetica, sans-serif; }
+.membrete-cm .cm-logo { position: absolute; left: 0; top: 0; height: 19mm; width: auto; }
+.membrete-cm .cm-clinica { font-size: 17pt; letter-spacing: .02em; line-height: 1.1; }
+.membrete-cm .cm-medico { font-family: "Times New Roman", Times, serif; font-weight: 700; font-size: 13pt; line-height: 1.2; }
+.membrete-cm .cm-fila { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 6mm; font-size: 7.5pt; line-height: 1.25; }
+.membrete-cm .cm-izq { text-align: left; padding-left: 22mm; }
+.membrete-cm .cm-der { text-align: right; }
+.doc-titulo-caja { position: relative; text-align: center; font-weight: 700; font-size: 12pt; background: #f4f5f5; border: 1px solid #b0b0b0; padding: 1mm 0; margin-bottom: 2mm; font-family: Arial, Helvetica, sans-serif; }
+.doc-titulo-caja .folio { position: absolute; right: 3mm; top: 50%; transform: translateY(-50%); font-weight: 400; font-size: 8.5pt; }
+.doc-paciente td.der { text-align: right; }
+
 .doc-titulo { text-align: center; font-size: 13pt; letter-spacing: .06em; margin: 2mm 0 4mm; }
 .doc-paciente { width: 100%; border-collapse: collapse; margin-bottom: 3mm; font-size: inherit; }
 .doc-paciente td { border: 0; border-bottom: 1px solid #cfd8dc; padding: 1.2mm 2mm 1.2mm 0; background: transparent !important; }
@@ -31,15 +43,16 @@
 .firma.grande { padding-top: 26mm; }
 
 /* Receta */
+.hoja.receta { font-family: Arial, Helvetica, sans-serif; }
 .receta .rx { font-size: 22pt; font-weight: 700; color: #0f766e; line-height: 1; margin: 1mm 0; }
 .receta-medicamentos { margin: 0 0 3mm; padding-left: 6mm; }
 .receta-medicamentos li { margin-bottom: 2mm; }
 .receta-indicaciones { margin-bottom: 2mm; }
 .receta-indicaciones.vacia { min-height: 10mm; }
 .receta-proxima { margin-bottom: 2mm; }
-.receta-pie { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 10mm; }
-.receta-pie .leyenda { font-size: 8pt; color: #444; max-width: 110mm; }
-.receta-pie .firma { margin: 0; padding-top: 10mm; }
+.receta-pie { margin-top: auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 6mm; }
+.receta-pie .leyenda { font-size: 8pt; color: #444; }
+.receta-pie .firma { margin: 0; padding-top: 8mm; font-family: Arial, Helvetica, sans-serif; }
 
 /* Certificado */
 .certificado { font-size: 12pt; line-height: 1.7; }

@@ -13,7 +13,8 @@
     <div><label for="rol">Rol</label>
       <select id="rol" name="rol">
         <option value="MEDICO" <%= u.rol === 'MEDICO' ? 'selected' : '' %>>Médico</option>
-        <option value="ASISTENTE" <%= u.rol === 'ASISTENTE' ? 'selected' : '' %>>Asistente / recepción</option>
+        <option value="ASISTENTE" <%= u.rol === 'ASISTENTE' ? 'selected' : '' %>>Asistente</option>
+        <option value="RECEPCION" <%= u.rol === 'RECEPCION' ? 'selected' : '' %>>Recepción (solo recibe y envía pacientes)</option>
       </select></div>
     <div><label for="password"><%= u.id ? 'Nueva contraseña (vacío = no cambiar)' : 'Contraseña (mínimo 8)' %></label>
       <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" <%= u.id ? '' : 'required' %>></div>

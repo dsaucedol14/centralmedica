@@ -5,7 +5,8 @@
 </div>
 <%- include('../partials/menu-admin') %>
 <p class="tenue">Todos los usuarios ven los mismos expedientes. <strong>Médico</strong>: consultas, historia clínica, recetas, órdenes y certificados.
-  <strong>Asistente</strong>: alta de pacientes, agenda, archivos y reimpresión de documentos. <strong>Administrador</strong> (además): usuarios, datos del consultorio y bitácora.</p>
+  <strong>Asistente</strong>: alta de pacientes, agenda, archivos y reimpresión de documentos.
+  <strong>Recepción</strong>: solo el módulo de Recepción (buscar o registrar pacientes y enviarlos a consulta); no ve expedientes. <strong>Administrador</strong> (además): usuarios, datos del consultorio, bitácora y respaldos.</p>
 <div class="tabla-wrap"><table>
   <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Cédula</th><th>Estado</th><th></th></tr></thead>
   <tbody>
@@ -13,7 +14,7 @@
     <tr class="<%= u.activo ? '' : 'inactivo' %>">
       <td class="mono"><%= u.usuario %></td>
       <td><%= u.nombre %></td>
-      <td><%= u.rol === 'MEDICO' ? 'Médico' : 'Asistente' %><%= u.es_admin ? ' · Admin' : '' %></td>
+      <td><%= { MEDICO: 'Médico', ASISTENTE: 'Asistente', RECEPCION: 'Recepción' }[u.rol] %><%= u.es_admin ? ' · Admin' : '' %></td>
       <td><%= u.rol === 'MEDICO' ? (u.cedula || 'Sin capturar') : '' %></td>
       <td><%= u.activo ? 'Activo' : 'Inactivo' %></td>
       <td class="der"><a class="btn chico sec" href="/admin/usuarios/<%= u.id %>">Editar</a></td>

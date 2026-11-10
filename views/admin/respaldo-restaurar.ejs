@@ -1,0 +1,45 @@
+<%- include('../partials/encabezado') %>
+<h1>Restaurar respaldo</h1>
+<p class="tenue"><a href="/admin/respaldos">← Respaldos</a></p>
+<% if (error) { %><div class="aviso error"><%= error %></div><% } %>
+
+<div class="panel">
+  <h2 class="mono"><%= nombre %></h2>
+  <ul>
+    <li><strong>Fecha del respaldo:</strong> <%= f.fechaHora(new Date(info.fecha)) %><%= info.generado_por ? ' · generado por ' + info.generado_por : '' %></li>
+    <% if (info.conteos) { %><li><strong>Contiene:</strong> <%= info.conteos.paciente ?? 0 %> pacientes, <%= info.conteos.consulta ?? 0 %> consultas, <%= info.conteos.receta ?? 0 %> recetas, <%= info.conteos.usuario ?? 0 %> usuarios</li><% } %>
+    <li><strong>Archivos adjuntos:</strong> <%= info.incluye_archivos ? `incluidos (${info.archivos})` : 'no incluidos' %></li>
+  </ul>
+</div>
+
+<div class="aviso error">
+  <strong>Atención:</strong> restaurar <strong>reemplaza toda la información actual</strong> (pacientes, consultas, recetas, agenda, usuarios y contraseñas)
+  por la que había en la fecha del respaldo. Lo que se capturó después de esa fecha dejará de verse.
+</div>
+<div class="aviso info">
+  Antes de restaurar, el sistema guarda solo un <strong>respaldo de seguridad</strong> de cómo está ahora, por si necesitas regresar.
+  Al terminar, todos los usuarios tendrán que volver a iniciar sesión. Hazlo cuando nadie más esté usando el sistema.
+</div>
+
+<form class="panel" method="post" action="/admin/respaldos/<%= encodeURIComponent(nombre) %>/restaurar" id="form-restaurar">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <% if (info.incluye_archivos) { %>
+    <label class="casilla"><input type="checkbox" name="con_archivos" value="1" checked> Restaurar también los archivos adjuntos</label>
+  <% } %>
+  <label for="confirmacion">Para confirmar, escribe la palabra <strong>RESTAURAR</strong></label>
+  <input id="confirmacion" name="confirmacion" autocomplete="off" required>
+  <label for="password">Tu contraseña</label>
+  <input id="password" name="password" type="password" autocomplete="current-password" required>
+  <p class="acciones">
+    <button class="btn peligro" type="submit">Restaurar este respaldo</button>
+    <a class="btn sec" href="/admin/respaldos">Cancelar</a>
+  </p>
+</form>
+<script>
+  document.getElementById('form-restaurar').addEventListener('submit', (e) => {
+    const b = e.target.querySelector('button[type=submit]');
+    b.disabled = true;
+    b.textContent = 'Restaurando… no cierres esta página';
+  });
+</script>
+<%- include('../partials/pie') %>

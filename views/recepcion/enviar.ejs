@@ -1,0 +1,55 @@
+<%- include('../partials/encabezado') %>
+<h1>Enviar a consulta</h1>
+<p class="tenue"><a href="/recepcion">← Recepción</a></p>
+<ol class="pasos">
+  <li>1. Buscar al paciente</li>
+  <li>2. Registrar o revisar sus datos</li>
+  <li class="actual">3. Enviarlo a consulta</li>
+</ol>
+<% if (error) { %><div class="aviso error"><%= error %></div><% } %>
+
+<div class="panel">
+  <div class="cabecera">
+    <div>
+      <h2 style="margin: 0"><%= f.nombreCompleto(p) %></h2>
+      <p class="tenue" style="margin: 4px 0 0">Exp. <%= p.expediente %><%= p.fecha_nacimiento ? ' · ' + f.edad(p.fecha_nacimiento) : '' %><%= p.sexo === 'F' ? ' · Mujer' : p.sexo === 'M' ? ' · Hombre' : '' %><%= p.telefono ? ' · Tel. ' + p.telefono : '' %></p>
+    </div>
+    <a class="btn chico sec" href="/recepcion/pacientes/<%= p.id %>/editar">Actualizar datos</a>
+  </div>
+  <% if (p.alergias) { %><div class="alergias"><strong>Alergias:</strong> <%= p.alergias %></div><% } %>
+</div>
+
+<% if (enSala) { %>
+  <div class="aviso info">Este paciente ya está <%= enSala.estado === 'EN_CONSULTA' ? 'en consulta' : 'en la sala de espera' %> con <%= enSala.medico %>.</div>
+<% } else { %>
+<% if (cita) { %><div class="aviso info">Tiene cita hoy a las <strong><%= f.hora(cita.inicio) %></strong>. Ya está seleccionado su médico.</div><% } %>
+
+<form method="post" action="/recepcion/pacientes/<%= p.id %>/enviar">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <fieldset>
+    <legend>¿Con qué médico pasa?</legend>
+    <% if (!medicos.length) { %><p class="tenue">No hay médicos activos registrados.</p><% } %>
+    <div class="medicos-opciones">
+      <% for (const m of medicos) { %>
+        <label class="medico-opcion <%= m.bloqueado ? 'no-disponible' : '' %>">
+          <input type="radio" name="medico_id" value="<%= m.id %>" <%= m.bloqueado ? 'disabled' : '' %> <%= t.medico_id === m.id && !m.bloqueado ? 'checked' : '' %> required>
+          <span>
+            <strong><%= m.nombre %></strong><% if (m.especialidad) { %><br><span class="tenue"><%= m.especialidad %></span><% } %><br>
+            <% if (m.bloqueado) { %><span class="etiqueta alerta">No da consultas hoy<%= m.bloqueo ? ': ' + m.bloqueo : '' %></span>
+            <% } else { %><span class="tenue"><%= m.esperando ? m.esperando + ' paciente' + (m.esperando === 1 ? '' : 's') + ' esperando' : 'Sin pacientes esperando' %></span><% } %>
+          </span>
+        </label>
+      <% } %>
+    </div>
+    <label for="motivo">Motivo de la visita <span class="tenue">(lo que dice el paciente; opcional)</span></label>
+    <input id="motivo" name="motivo" value="<%= t.motivo || '' %>" maxlength="300">
+    <label for="notas">Nota para el médico <span class="tenue">(opcional)</span></label>
+    <input id="notas" name="notas" value="<%= t.notas || '' %>" maxlength="500">
+  </fieldset>
+  <p class="acciones">
+    <button class="btn" type="submit">Enviar a consulta</button>
+    <a class="btn sec" href="/recepcion">Cancelar</a>
+  </p>
+</form>
+<% } %>
+<%- include('../partials/pie') %>

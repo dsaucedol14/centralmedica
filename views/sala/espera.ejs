@@ -1,0 +1,50 @@
+<%- include('../partials/encabezado') %>
+<div class="cabecera">
+  <div>
+    <h1>Sala de espera</h1>
+    <p class="tenue"><%= todos ? 'Pacientes de todos los médicos' : 'Tus pacientes de hoy' %> · se actualiza sola cada minuto</p>
+  </div>
+  <% if (usuario.esMedico) { %>
+    <a class="btn sec" href="/sala-espera<%= todos ? '' : '?todos=1' %>"><%= todos ? 'Ver solo los míos' : 'Ver todos los médicos' %></a>
+  <% } %>
+</div>
+
+<% if (!turnos.length) { %>
+  <div class="panel"><p class="vacio">No hay pacientes esperando. Cuando recepción envíe a alguien, te aparecerá un aviso.</p></div>
+<% } %>
+<div class="turnos">
+  <% for (const t of turnos) { %>
+    <% const espera = Math.max(0, Math.round((Date.now() - f.aFecha(t.llegada).getTime()) / 60000)); %>
+    <div class="turno <%= t.estado.toLowerCase() %>">
+      <div class="cabecera" style="margin: 0">
+        <span class="etiqueta <%= t.estado === 'EN_CONSULTA' ? '' : 'alerta' %>" style="margin: 0"><%= t.estado === 'EN_CONSULTA' ? 'En consulta' : 'En espera · ' + espera + ' min' %></span>
+        <span class="tenue">Llegó <%= f.hora(t.llegada) %></span>
+      </div>
+      <div class="turno-nombre"><%= f.nombreCompleto(t) %></div>
+      <div>Exp. <%= t.expediente %><%= t.fecha_nacimiento ? ' · ' + f.edad(t.fecha_nacimiento) : '' %><%= t.sexo === 'F' ? ' · Mujer' : t.sexo === 'M' ? ' · Hombre' : '' %></div>
+      <% if (t.telefono) { %><div class="tenue">Tel. <%= t.telefono %></div><% } %>
+      <% if (t.alergias) { %><div class="aviso-sala-alergias">Alergias: <%= t.alergias %></div><% } %>
+      <% if (t.motivo) { %><div><strong>Motivo:</strong> <%= t.motivo %></div><% } %>
+      <% if (t.notas) { %><div class="tenue">Nota de recepción: <%= t.notas %></div><% } %>
+      <% if (todos || t.medico_id !== usuario.id) { %><div class="tenue">Con <%= t.medico %></div><% } %>
+      <% if (!t.consultas_previas) { %><span class="etiqueta" style="margin: 4px 0 0">Primera vez</span><% } %>
+      <div class="turno-acciones">
+        <% if (usuario.esMedico) { %>
+          <form method="post" action="/sala-espera/<%= t.id %>/pasar">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="btn chico" type="submit"><%= t.estado === 'EN_CONSULTA' ? 'Continuar consulta' : 'Pasar a consulta' %></button>
+          </form>
+        <% } %>
+        <a class="btn chico sec" href="/pacientes/<%= t.paciente_id %>">Ver expediente</a>
+        <% if (usuario.esMedico && t.estado === 'EN_CONSULTA') { %>
+          <form method="post" action="/sala-espera/<%= t.id %>/regresar">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="btn chico sec" type="submit">Regresar a espera</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+</div>
+<script>setTimeout(() => location.reload(), 60000);</script>
+<%- include('../partials/pie') %>

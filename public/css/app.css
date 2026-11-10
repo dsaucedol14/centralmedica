@@ -201,6 +201,73 @@ button.enlace-chico { background: none; border: 0; padding: 0; margin: 0; color:
 .login h1 { margin-top: 10px; }
 .login form { text-align: left; margin-top: 18px; }
 
+/* Botones de ícono (modificar / eliminar) */
+.acciones-fila { white-space: nowrap; }
+.acciones-fila > * { vertical-align: middle; }
+.acciones-fila form { display: inline; margin: 0; }
+.icono-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-left: 4px; padding: 0;
+  border: 1px solid var(--borde); border-radius: 6px; background: var(--panel); color: var(--primario); cursor: pointer; }
+.icono-btn:hover { background: var(--primario-claro); border-color: var(--primario); }
+.icono-btn.peligro { color: var(--alerta); }
+.icono-btn.peligro:hover { background: var(--alerta-fondo); border-color: var(--alerta); }
+.icono-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Recepción y sala de espera */
+.globo { display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 999px; background: #f59e0b; color: #1c2b33; font-size: 12px; font-weight: 700; text-align: center; line-height: 20px; }
+.globo[hidden] { display: none; }
+.avisos-sala { position: fixed; right: 16px; bottom: 16px; z-index: 50; display: flex; flex-direction: column; gap: 10px; max-width: min(380px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto; }
+.aviso-sala { background: var(--panel); border: 1px solid var(--borde); border-left: 5px solid #f59e0b; border-radius: var(--radio); box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 12px 14px; font-size: 14px; animation: entra .25s ease-out; }
+.aviso-sala header { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin-bottom: 4px; }
+.aviso-sala header strong { color: #b45309; }
+.aviso-sala-nombre { font-size: 17px; font-weight: 700; }
+.aviso-sala-alergias { color: var(--alerta); font-weight: 600; }
+.aviso-sala-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.aviso-sala-acciones form { margin: 0; }
+@keyframes entra { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media print { .avisos-sala { display: none !important; } }
+
+.turnos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.turno { background: var(--panel); border: 1px solid var(--borde); border-left: 5px solid #f59e0b; border-radius: var(--radio); padding: 12px 14px; }
+.turno.en_consulta { border-left-color: var(--primario); }
+.turno.atendido { border-left-color: #9ca3af; opacity: .75; }
+.turno.cancelado { border-left-color: #d1d5db; opacity: .6; }
+.turno-nombre { font-size: 16px; font-weight: 700; }
+.turno-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.turno-acciones form { margin: 0; }
+.pasos { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; padding: 0; margin: 0 0 16px; color: var(--tenue); font-size: 14px; }
+.pasos li.actual { color: var(--primario); font-weight: 700; }
+.medicos-opciones { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.medico-opcion { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--borde); border-radius: var(--radio); padding: 10px 12px; cursor: pointer; background: var(--panel); font-weight: 400; margin: 0; }
+.medico-opcion:has(input:checked) { border-color: var(--primario); box-shadow: 0 0 0 1px var(--primario); background: var(--primario-claro); }
+.medico-opcion.no-disponible { opacity: .55; cursor: not-allowed; }
+.medico-opcion input { width: auto; margin-top: 3px; }
+
+/* Manual de usuario */
+.manual { display: grid; grid-template-columns: 230px 1fr; gap: 28px; align-items: start; }
+.manual-indice { position: sticky; top: 16px; background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 14px 16px; font-size: 14px; }
+.manual-indice ol { padding-left: 20px; margin: 8px 0 12px; }
+.manual-indice li { margin-bottom: 4px; }
+.manual-texto { max-width: 820px; line-height: 1.6; }
+.manual-texto section { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); padding: 4px 22px 14px; margin-bottom: 18px; scroll-margin-top: 16px; }
+.manual-texto h3 { margin-top: 18px; }
+.manual-texto li { margin-bottom: 4px; }
+.preguntas dt { font-weight: 700; margin-top: 12px; }
+.preguntas dd { margin: 2px 0 0 0; }
+@media (max-width: 760px) {
+  .manual { grid-template-columns: 1fr; }
+  .manual-indice { position: static; }
+}
+@media print {
+  .barra, .no-imprimir { display: none !important; }
+  .manual { display: block; }
+  .manual-texto section { border: 0; padding: 0; break-inside: avoid-page; }
+}
+
+/* Respaldos */
+.respaldos { gap: 0 18px; }
+.acciones-respaldo { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.acciones-respaldo form { margin: 0; }
+
 @media (max-width: 760px) {
   .barra { padding: 10px 16px; }
   .buscador { order: 3; max-width: none; flex-basis: 100%; }

@@ -19,5 +19,7 @@ module.exports = {
   },
   uploads: path.resolve(raiz, process.env.UPLOADS_DIR || './uploads'),
   uploadMaxMb: Number(process.env.UPLOAD_MAX_MB || 20),
+  respaldos: path.resolve(raiz, process.env.RESPALDOS_DIR || './respaldos'),
+  respaldoMaxMb: Number(process.env.RESPALDO_MAX_MB || 4096),
   produccion: process.env.NODE_ENV === 'production',
 };

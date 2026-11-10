@@ -157,3 +157,5 @@ router.post('/pacientes/:id/historia', requiereMedico, async (req, res) => {
 });
 
 module.exports = router;
+module.exports.leerPaciente = leerPaciente;
+module.exports.validarPaciente = validarPaciente;

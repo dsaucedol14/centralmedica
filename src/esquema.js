@@ -12,7 +12,7 @@ const TABLAS = [
     usuario VARCHAR(50) NOT NULL UNIQUE,
     nombre VARCHAR(150) NOT NULL,
     password_hash VARCHAR(100) NOT NULL,
-    rol ENUM('MEDICO','ASISTENTE') NOT NULL DEFAULT 'ASISTENTE',
+    rol ENUM('MEDICO','ASISTENTE','RECEPCION') NOT NULL DEFAULT 'ASISTENTE',
     es_admin TINYINT(1) NOT NULL DEFAULT 0,
     cedula VARCHAR(30) NULL,
     especialidad VARCHAR(120) NULL,
@@ -211,6 +211,29 @@ const TABLAS = [
     CONSTRAINT fk_bloqueo_usuario FOREIGN KEY (creado_por) REFERENCES usuario(id)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`,
 
+  `CREATE TABLE IF NOT EXISTS turno (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    paciente_id INT NOT NULL,
+    medico_id INT NOT NULL,
+    cita_id INT NULL,
+    motivo VARCHAR(300) NULL,
+    notas VARCHAR(500) NULL,
+    estado ENUM('EN_ESPERA','EN_CONSULTA','ATENDIDO','CANCELADO') NOT NULL DEFAULT 'EN_ESPERA',
+    llegada DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    avisado_en DATETIME NULL,
+    pasa_en DATETIME NULL,
+    atendido_en DATETIME NULL,
+    consulta_id INT NULL,
+    creado_por INT NULL,
+    INDEX ix_turno_medico (medico_id, estado, llegada),
+    INDEX ix_turno_llegada (llegada),
+    CONSTRAINT fk_turno_paciente FOREIGN KEY (paciente_id) REFERENCES paciente(id),
+    CONSTRAINT fk_turno_medico FOREIGN KEY (medico_id) REFERENCES usuario(id),
+    CONSTRAINT fk_turno_cita FOREIGN KEY (cita_id) REFERENCES cita(id) ON DELETE SET NULL,
+    CONSTRAINT fk_turno_consulta FOREIGN KEY (consulta_id) REFERENCES consulta(id) ON DELETE SET NULL,
+    CONSTRAINT fk_turno_usuario FOREIGN KEY (creado_por) REFERENCES usuario(id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`,
+
   `CREATE TABLE IF NOT EXISTS archivo (
     id INT AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT NOT NULL,
@@ -248,6 +271,13 @@ async function preparar() {
     await con.query(`CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci`);
     await con.changeUser({ database });
     for (const sql of TABLAS) await con.query(sql);
+
+    // Bases creadas antes del rol de recepción (o restauradas de un respaldo viejo)
+    const [[rol]] = await con.query(
+      "SELECT COLUMN_TYPE AS tipo FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuario' AND COLUMN_NAME = 'rol'");
+    if (!rol.tipo.includes('RECEPCION')) {
+      await con.query("ALTER TABLE usuario MODIFY rol ENUM('MEDICO','ASISTENTE','RECEPCION') NOT NULL DEFAULT 'ASISTENTE'");
+    }
 
     await con.query(`INSERT IGNORE INTO consultorio (id, nombre) VALUES (1, 'Central Médica')`);
 

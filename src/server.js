@@ -59,13 +59,19 @@ async function iniciar() {
   app.use((req, res, next) => (req.is('multipart/form-data') ? next() : seg.validarCsrf(req, res, next)));
 
   app.use(require('./rutas/acceso'));
+  app.get('/ayuda', (req, res) => res.render('ayuda', { titulo: 'Manual de usuario' }));
   app.use(seg.requiereSesion);
+  app.use(seg.limitarRecepcion);
+  app.use(seg.salaDeEspera);
+  app.use(require('./rutas/recepcion'));
+  app.use(require('./rutas/sala'));
   app.use(require('./rutas/inicio'));
   app.use(require('./rutas/pacientes'));
   app.use(require('./rutas/consultas'));
   app.use(require('./rutas/documentos'));
   app.use(require('./rutas/agenda'));
   app.use(require('./rutas/archivos'));
+  app.use('/admin/respaldos', seg.requiereAdmin, require('./rutas/respaldos'));
   app.use('/admin', seg.requiereAdmin, require('./rutas/admin'));
 
   app.use((req, res) => res.status(404).render('error', { titulo: 'No encontrado', mensaje: 'La página que buscas no existe.' }));

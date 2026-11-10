@@ -1,15 +1,16 @@
 <%- include('../partials/encabezado') %>
-<h1>Nueva orden de estudios</h1>
+<h1><%= titulo %></h1>
 <p class="tenue"><a href="/pacientes/<%= p.id %>?tab=ordenes">← <%= f.nombreCompleto(p) %></a> · Exp. <%= p.expediente %></p>
+<% if (o.id) { %><div class="aviso info">Estás modificando una orden ya emitida. Conserva su folio <strong><%= o.folio %></strong>; si ya la imprimiste, vuelve a imprimirla después de guardar.</div><% } %>
 <% if (error) { %><div class="aviso error"><%= error %></div><% } %>
 
 <nav class="pestanas">
   <% for (const [clave, etiqueta] of Object.entries(TIPOS_ORDEN)) { %>
-    <a class="<%= o.tipo === clave ? 'activo' : '' %>" href="?tipo=<%= clave %><%= o.consulta_id ? '&consulta=' + o.consulta_id : '' %>"><%= etiqueta %></a>
+    <a class="<%= o.tipo === clave ? 'activo' : '' %>" href="?tipo=<%= clave %><%= o.consulta_id && !o.id ? '&consulta=' + o.consulta_id : '' %>"><%= etiqueta %></a>
   <% } %>
 </nav>
 
-<form method="post" action="/pacientes/<%= p.id %>/ordenes">
+<form method="post" action="<%= o.id ? '/ordenes/' + o.id : '/pacientes/' + p.id + '/ordenes' %>">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <input type="hidden" name="tipo" value="<%= o.tipo %>">
   <% if (o.consulta_id) { %><input type="hidden" name="consulta_id" value="<%= o.consulta_id %>"><% } %>
@@ -37,7 +38,7 @@
     <textarea name="indicaciones" rows="2" maxlength="2000" placeholder="Ayuno, preparación, vejiga llena…"><%= o.indicaciones || '' %></textarea>
   </fieldset>
   <p class="acciones">
-    <button class="btn" type="submit">Emitir orden</button>
+    <button class="btn" type="submit"><%= o.id ? 'Guardar cambios' : 'Emitir orden' %></button>
     <a class="btn sec" href="/pacientes/<%= p.id %>?tab=ordenes">Cancelar</a>
   </p>
 </form>

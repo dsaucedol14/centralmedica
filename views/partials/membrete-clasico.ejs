@@ -1,0 +1,18 @@
+<header class="membrete-cm">
+  <img class="cm-logo" src="/static/img/logo.png" alt="">
+  <div class="cm-clinica"><%= (consultorio.nombre || '').toUpperCase() %></div>
+  <div class="cm-medico"><%= (medico.nombre || '').toUpperCase() %></div>
+  <div class="cm-fila">
+    <div class="cm-izq">
+      <div>Céd. Prof. <%= medico.cedula || '—' %></div>
+      <% if (consultorio.direccion) { %><div><%= consultorio.direccion.toUpperCase() %></div><% } %>
+    </div>
+    <div class="cm-centro">
+      <% if (medico.especialidad) { %><div><%= medico.especialidad.toUpperCase() %></div><% } %>
+      <% if (medico.cedula_especialidad) { %><div>Céd. Esp. <%= medico.cedula_especialidad %></div><% } %>
+      <% if (medico.universidad) { %><div><%= medico.universidad.toUpperCase() %></div><% } %>
+      <% if (consultorio.telefono) { %><div>TEL. <%= consultorio.telefono %></div><% } %>
+    </div>
+    <div class="cm-der"><%= (consultorio.ciudad || '').toUpperCase() %></div>
+  </div>
+</header>

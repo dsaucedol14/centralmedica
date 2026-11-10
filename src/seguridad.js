@@ -49,6 +49,7 @@ async function cargarUsuario(req, res, next) {
     const u = (await q('SELECT id, usuario, nombre, rol, es_admin, cedula, especialidad, cedula_especialidad, universidad FROM usuario WHERE id = ? AND activo = 1', [req.session.usuarioId]))[0];
     if (u) {
       u.esMedico = u.rol === 'MEDICO';
+      u.esRecepcion = u.rol === 'RECEPCION';
       u.esAdmin = !!u.es_admin;
       req.usuario = u;
       res.locals.usuario = u;
@@ -63,6 +64,24 @@ function requiereSesion(req, res, next) {
   if (req.usuario) return next();
   if (req.method === 'GET') req.session.volverA = req.originalUrl;
   res.redirect('/login');
+}
+
+/** La recepción solo ve su módulo: nunca expedientes, consultas ni documentos clínicos. */
+const PERMITIDO_A_RECEPCION = /^\/(recepcion|cuenta|ayuda)(\/|$)/;
+function limitarRecepcion(req, res, next) {
+  if (!req.usuario.esRecepcion || PERMITIDO_A_RECEPCION.test(req.path)) return next();
+  if (req.method === 'GET' && !req.path.startsWith('/api/')) return res.redirect('/recepcion');
+  prohibido(res, 'Tu usuario es de recepción: solo tienes acceso al módulo de Recepción.');
+}
+
+/** Pacientes que esperan al médico en sesión (para el contador de la barra). */
+async function salaDeEspera(req, res, next) {
+  res.locals.enEspera = 0;
+  if (req.usuario.esMedico) {
+    const [r] = await q("SELECT COUNT(*) AS n FROM turno WHERE medico_id = ? AND estado = 'EN_ESPERA' AND llegada >= CURDATE()", [req.usuario.id]);
+    res.locals.enEspera = r.n;
+  }
+  next();
 }
 
 function prohibido(res, mensaje) {
@@ -92,5 +111,5 @@ async function bitacora(req, accion, entidad, entidadId, pacienteId, detalle) {
 
 module.exports = {
   encabezados, flash, csrf, validarCsrf, cargarUsuario,
-  requiereSesion, requiereMedico, requiereAdmin, prohibido, bitacora,
+  requiereSesion, requiereMedico, requiereAdmin, prohibido, bitacora, limitarRecepcion, salaDeEspera,
 };

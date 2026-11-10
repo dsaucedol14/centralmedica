@@ -21,7 +21,7 @@ function leer(body) {
   return {
     usuario: (texto(body.usuario, 50) || '').toLowerCase(),
     nombre: texto(body.nombre, 150),
-    rol: body.rol === 'MEDICO' ? 'MEDICO' : 'ASISTENTE',
+    rol: ['MEDICO', 'RECEPCION'].includes(body.rol) ? body.rol : 'ASISTENTE',
     es_admin: body.es_admin === '1' ? 1 : 0,
     activo: body.activo === '1' ? 1 : 0,
     cedula: texto(body.cedula, 30),

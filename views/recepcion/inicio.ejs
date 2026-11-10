@@ -1,0 +1,87 @@
+<%- include('../partials/encabezado') %>
+<div class="cabecera">
+  <div>
+    <h1>Recepción</h1>
+    <p class="tenue"><%= f.diaLargo(f.hoy()) %></p>
+  </div>
+  <a class="btn" href="/recepcion/pacientes/nuevo<%= busqueda ? '?nombre=' + encodeURIComponent(busqueda) : '' %>">+ Registrar paciente nuevo</a>
+</div>
+
+<ol class="pasos">
+  <li class="actual">1. Buscar al paciente</li>
+  <li>2. Registrar o revisar sus datos</li>
+  <li>3. Enviarlo a consulta</li>
+</ol>
+
+<form class="panel" method="get" action="/recepcion" role="search">
+  <label for="q">Busca al paciente por nombre, apellidos, número de expediente, CURP o teléfono</label>
+  <div class="acciones">
+    <input id="q" name="q" type="search" value="<%= busqueda || '' %>" autofocus autocomplete="off" style="flex: 1; min-width: 220px">
+    <button class="btn" type="submit">Buscar</button>
+  </div>
+</form>
+
+<% if (pacientes) { %>
+  <% if (!pacientes.length) { %>
+    <div class="panel">
+      <p><strong>No encontramos a «<%= busqueda %>».</strong> Revisa cómo se escribe o busca por otro dato (teléfono, CURP). Si es la primera vez que viene, regístralo:</p>
+      <a class="btn" href="/recepcion/pacientes/nuevo?nombre=<%= encodeURIComponent(busqueda) %>">+ Registrar paciente nuevo</a>
+    </div>
+  <% } else { %>
+    <h2><%= pacientes.length %> resultado<%= pacientes.length === 1 ? '' : 's' %></h2>
+    <div class="tabla-wrap"><table>
+      <thead><tr><th>Paciente</th><th>Expediente</th><th>Edad</th><th>Teléfono</th><th></th></tr></thead>
+      <tbody>
+      <% for (const p of pacientes) { %>
+        <tr>
+          <td><strong><%= f.nombreLista(p) %></strong><% if (p.curp) { %><br><small class="tenue mono"><%= p.curp %></small><% } %></td>
+          <td class="mono"><%= p.expediente %></td>
+          <td><%= f.edad(p.fecha_nacimiento) || '—' %></td>
+          <td><%= p.telefono || '—' %></td>
+          <td class="der acciones-respaldo">
+            <% if (p.en_sala) { %><span class="etiqueta"><%= p.en_sala === 'EN_CONSULTA' ? 'En consulta' : 'Ya está en espera' %></span>
+            <% } else { %><a class="btn chico" href="/recepcion/pacientes/<%= p.id %>/enviar">Enviar a consulta</a><% } %>
+            <a class="btn chico sec" href="/recepcion/pacientes/<%= p.id %>/editar">Actualizar datos</a>
+          </td>
+        </tr>
+      <% } %>
+      </tbody>
+    </table></div>
+    <p class="tenue">¿No es ninguno? <a href="/recepcion/pacientes/nuevo?nombre=<%= encodeURIComponent(busqueda) %>">Registra un paciente nuevo</a>.</p>
+  <% } %>
+<% } %>
+
+<h2>Sala de espera de hoy</h2>
+<% const activos = sala.filter((t) => t.estado === 'EN_ESPERA' || t.estado === 'EN_CONSULTA'); %>
+<% const terminados = sala.filter((t) => t.estado === 'ATENDIDO' || t.estado === 'CANCELADO'); %>
+<% if (!activos.length) { %><p class="tenue">No hay pacientes esperando.</p><% } %>
+<div class="turnos">
+  <% for (const t of activos) { %>
+    <div class="turno <%= t.estado.toLowerCase() %>">
+      <div class="turno-nombre"><%= f.nombreCompleto(t) %></div>
+      <div class="tenue">Exp. <%= t.expediente %> · llegó a las <%= f.hora(t.llegada) %></div>
+      <div><strong><%= t.estado === 'EN_CONSULTA' ? 'En consulta con' : 'Espera a' %></strong> <%= t.medico %></div>
+      <% if (t.motivo) { %><div class="tenue"><%= t.motivo %></div><% } %>
+      <% if (t.estado === 'EN_ESPERA') { %>
+        <div class="turno-acciones">
+          <form method="post" action="/recepcion/turnos/<%= t.id %>/cancelar" onsubmit="return confirm('¿Sacar a este paciente de la sala de espera?')">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="btn chico peligro" type="submit">Cancelar envío</button>
+          </form>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
+</div>
+<% if (terminados.length) { %>
+  <details>
+    <summary class="tenue">Atendidos y cancelados hoy (<%= terminados.length %>)</summary>
+    <ul>
+      <% for (const t of terminados) { %>
+        <li><%= f.nombreCompleto(t) %> · <%= t.medico %> · <%= t.estado === 'ATENDIDO' ? 'atendido' : 'cancelado' %> (llegó <%= f.hora(t.llegada) %>)</li>
+      <% } %>
+    </ul>
+  </details>
+<% } %>
+<script>setInterval(() => { if (document.activeElement.id !== 'q') location.reload(); }, 60000);</script>
+<%- include('../partials/pie') %>

@@ -151,7 +151,20 @@
         <td><%= TIPO_ORDEN[o.tipo] %></td>
         <td><%= o.estudios.split('\n').join(' · ') %></td>
         <td><%= o.medico %></td>
-        <td class="der"><a class="btn chico sec" href="/ordenes/<%= o.id %>">Ver / imprimir</a></td>
+        <td class="der acciones-fila">
+          <a class="btn chico sec" href="/ordenes/<%= o.id %>">Ver / imprimir</a>
+          <% if (o.medico_id === usuario.id || usuario.esAdmin) { %>
+            <a class="icono-btn" href="/ordenes/<%= o.id %>/editar" title="Modificar orden <%= o.folio %>" aria-label="Modificar orden <%= o.folio %>">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>
+            </a>
+            <form method="post" action="/ordenes/<%= o.id %>/eliminar" onsubmit="return confirm('¿Eliminar la orden <%= o.folio %>? Esta acción no se puede deshacer.')">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="icono-btn peligro" type="submit" title="Eliminar orden <%= o.folio %>" aria-label="Eliminar orden <%= o.folio %>">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>
+              </button>
+            </form>
+          <% } %>
+        </td>
       </tr>
     <% } %>
     <% if (!ordenes.length) { %><tr><td colspan="6" class="vacio">Sin órdenes de estudio. Los resultados se suben en la pestaña Archivos.</td></tr><% } %>

@@ -9,6 +9,7 @@
 <form method="post" action="<%= c.id ? '/consultas/' + c.id : '/pacientes/' + p.id + '/consultas' %>">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <% if (citaId) { %><input type="hidden" name="cita_id" value="<%= citaId %>"><% } %>
+  <% if (typeof turnoId !== 'undefined' && turnoId) { %><input type="hidden" name="turno_id" value="<%= turnoId %>"><% } %>
   <fieldset>
     <legend>Motivo</legend>
     <div class="rejilla tres">

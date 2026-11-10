@@ -1,7 +1,7 @@
 /** Recetas, órdenes de estudio y certificados médicos: los emite un médico y cualquiera puede reimprimirlos. */
 const express = require('express');
 const { q, uno, tx, siguienteFolio } = require('../db');
-const { requiereMedico, bitacora } = require('../seguridad');
+const { requiereMedico, prohibido, bitacora } = require('../seguridad');
 const { texto, fechaISO, lista, hoy, edad, nombreCompleto, fechaLarga, aFecha } = require('../util');
 
 const router = express.Router();
@@ -139,17 +139,13 @@ router.get('/pacientes/:id/ordenes/nueva', requiereMedico, async (req, res) => {
   res.render('ordenes/form', { titulo: 'Nueva orden de estudios', p, o, seleccion: [], otros: '', ESTUDIOS, TIPOS_ORDEN, error: null });
 });
 
-router.post('/pacientes/:id/ordenes', requiereMedico, async (req, res) => {
-  const p = await cargarPaciente(req, res);
-  if (!p) return;
-  const b = req.body;
-  const consulta = await consultaDe(p.id, b.consulta_id);
+/** Lee el formulario de la orden. Devuelve la orden, los estudios y el error de validación (o null). */
+function leerOrden(b) {
   const o = {
     tipo: TIPOS_ORDEN[b.tipo] ? b.tipo : 'OTRO',
     fecha: fechaISO(b.fecha) || hoy(),
     diagnostico: texto(b.diagnostico, 300),
     indicaciones: texto(b.indicaciones, 2000),
-    consulta_id: consulta ? consulta.id : null,
   };
   const seleccion = lista(b.estudio).map((e) => texto(e, 200)).filter(Boolean);
   const otros = texto(b.otros, 3000) || '';
@@ -157,6 +153,33 @@ router.post('/pacientes/:id/ordenes', requiereMedico, async (req, res) => {
   let error = null;
   if (!estudios.length) error = 'Marca o escribe al menos un estudio.';
   else if (!o.diagnostico) error = 'Escribe el diagnóstico presuntivo o motivo del estudio.';
+  return { o, seleccion, otros, estudios, error };
+}
+
+/** Separa los estudios guardados en los del catálogo del tipo (casillas) y el resto (texto libre). */
+function repartirEstudios(tipo, estudios) {
+  const lista = String(estudios || '').split('\n').filter(Boolean);
+  const seleccion = lista.filter((e) => ESTUDIOS[tipo].includes(e));
+  return { seleccion, otros: lista.filter((e) => !seleccion.includes(e)).join('\n') };
+}
+
+/** Solo quien emitió la orden o un administrador puede modificarla o eliminarla. */
+async function ordenEditable(req, res) {
+  const o = await uno('SELECT * FROM orden_estudio WHERE id = ?', [req.params.id]);
+  if (!o) { noEncontrado(res, 'Esa orden'); return null; }
+  if (o.medico_id !== req.usuario.id && !req.usuario.esAdmin) {
+    prohibido(res, 'Solo el médico que emitió la orden o un administrador puede modificarla o eliminarla.');
+    return null;
+  }
+  return o;
+}
+
+router.post('/pacientes/:id/ordenes', requiereMedico, async (req, res) => {
+  const p = await cargarPaciente(req, res);
+  if (!p) return;
+  const consulta = await consultaDe(p.id, req.body.consulta_id);
+  const { o, seleccion, otros, estudios, error } = leerOrden(req.body);
+  o.consulta_id = consulta ? consulta.id : null;
   if (error) return res.status(400).render('ordenes/form', { titulo: 'Nueva orden de estudios', p, o, seleccion, otros, ESTUDIOS, TIPOS_ORDEN, error });
 
   const id = await tx(async (con) => {
@@ -176,6 +199,39 @@ router.get('/ordenes/:id', async (req, res) => {
   if (!o) return noEncontrado(res, 'Esa orden');
   const [p, impresion] = await Promise.all([uno('SELECT * FROM paciente WHERE id = ?', [o.paciente_id]), datosImpresion(o.medico_id)]);
   res.render('ordenes/imprimir', { titulo: `Orden ${o.folio}`, o, p, TIPOS_ORDEN, ...impresion });
+});
+
+router.get('/ordenes/:id/editar', async (req, res) => {
+  const actual = await ordenEditable(req, res);
+  if (!actual) return;
+  const p = await uno('SELECT * FROM paciente WHERE id = ?', [actual.paciente_id]);
+  const tipo = TIPOS_ORDEN[req.query.tipo] ? req.query.tipo : actual.tipo;
+  const { seleccion, otros } = repartirEstudios(tipo, actual.estudios);
+  res.render('ordenes/form', { titulo: `Modificar orden ${actual.folio}`, p, o: { ...actual, tipo }, seleccion, otros, ESTUDIOS, TIPOS_ORDEN, error: null });
+});
+
+router.post('/ordenes/:id', async (req, res) => {
+  const actual = await ordenEditable(req, res);
+  if (!actual) return;
+  const { o, seleccion, otros, estudios, error } = leerOrden(req.body);
+  if (error) {
+    const p = await uno('SELECT * FROM paciente WHERE id = ?', [actual.paciente_id]);
+    return res.status(400).render('ordenes/form', { titulo: `Modificar orden ${actual.folio}`, p, o: { ...actual, ...o }, seleccion, otros, ESTUDIOS, TIPOS_ORDEN, error });
+  }
+  await q('UPDATE orden_estudio SET fecha = ?, tipo = ?, estudios = ?, diagnostico = ?, indicaciones = ? WHERE id = ?',
+    [o.fecha, o.tipo, estudios.join('\n'), o.diagnostico, o.indicaciones, actual.id]);
+  await bitacora(req, 'EDITAR', 'orden_estudio', actual.id, actual.paciente_id, `${actual.folio} · antes: ${actual.estudios.split('\n').join(', ')}`);
+  req.flash('ok', `Orden ${actual.folio} modificada.`);
+  res.redirect(`/ordenes/${actual.id}`);
+});
+
+router.post('/ordenes/:id/eliminar', async (req, res) => {
+  const o = await ordenEditable(req, res);
+  if (!o) return;
+  await q('DELETE FROM orden_estudio WHERE id = ?', [o.id]);
+  await bitacora(req, 'ELIMINAR', 'orden_estudio', o.id, o.paciente_id, `${o.folio} · ${o.estudios.split('\n').join(', ')}`);
+  req.flash('ok', `Orden ${o.folio} eliminada.`);
+  res.redirect(`/pacientes/${o.paciente_id}?tab=ordenes`);
 });
 
 /* ----------------------------- Certificados ----------------------------- */

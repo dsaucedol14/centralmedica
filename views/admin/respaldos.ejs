@@ -1,0 +1,77 @@
+<%- include('../partials/encabezado') %>
+<h1>Administración</h1>
+<%- include('../partials/menu-admin') %>
+
+<div class="rejilla dos respaldos">
+  <form class="panel" method="post" action="/admin/respaldos" data-espera="Generando el respaldo… puede tardar unos minutos, no cierres esta página.">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>Generar un respaldo</h2>
+    <p class="tenue">Crea un archivo <strong>.zip</strong> con toda la información del sistema. La base de datos va dentro como un archivo aparte (<em>base-de-datos.sql</em>), que también puedes descargar sola.</p>
+    <label class="casilla"><input type="checkbox" name="incluir_archivos" value="1" checked> Incluir los archivos adjuntos de los expedientes (estudios, imágenes, documentos)</label>
+    <p class="tenue">Sin los adjuntos, el respaldo es más chico y rápido, pero solo guarda la base de datos.</p>
+    <p><button class="btn" type="submit">Generar respaldo</button></p>
+  </form>
+
+  <form class="panel" method="post" action="/admin/respaldos/importar?_csrf=<%= csrf %>" enctype="multipart/form-data" data-espera="Subiendo y revisando el respaldo…">
+    <h2>Importar un respaldo</h2>
+    <p class="tenue">Sube un respaldo generado por este sistema (<strong>.zip</strong>, o un <strong>.sql</strong> de base de datos). Al subirlo <strong>no se cambia nada</strong>: aparecerá en la lista y desde ahí decides si lo restauras.</p>
+    <label for="archivo">Archivo del respaldo</label>
+    <input id="archivo" name="archivo" type="file" accept=".zip,.sql" required>
+    <p class="tenue">Tamaño máximo: <%= maxMb >= 1024 ? (maxMb / 1024).toFixed(0) + ' GB' : maxMb + ' MB' %>.</p>
+    <p><button class="btn sec" type="submit">Importar</button></p>
+  </form>
+</div>
+
+<div class="aviso info">Guarda una copia de cada respaldo <strong>fuera de esta computadora</strong> (memoria USB, disco externo o tu nube). Contienen expedientes clínicos: guárdalos en un lugar seguro.</div>
+
+<h2>Respaldos guardados</h2>
+<% if (!respaldos.length) { %>
+  <p class="tenue">Todavía no hay respaldos. Genera el primero arriba.</p>
+<% } else { %>
+<div class="tabla-wrap"><table>
+  <thead><tr><th>Fecha</th><th>Archivo</th><th>Contenido</th><th>Tamaño</th><th></th></tr></thead>
+  <tbody>
+  <% for (const r of respaldos) { %>
+    <tr>
+      <td><%= f.fechaHora(r.info && r.info.fecha ? new Date(r.info.fecha) : r.modificado) %></td>
+      <td class="mono"><%= r.nombre %>
+        <% if (r.nombre.includes('_antes-de-restaurar')) { %><br><span class="etiqueta">automático, antes de restaurar</span><% } %>
+        <% if (r.nombre.startsWith('importado_')) { %><br><span class="etiqueta">importado</span><% } %>
+      </td>
+      <td>
+        <% if (!r.info) { %><span class="etiqueta alerta">No válido</span>
+        <% } else { %>
+          Base de datos<%= r.info.incluye_archivos ? ` + ${r.info.archivos} archivo${r.info.archivos === 1 ? '' : 's'}` : '' %>
+          <% if (r.info.conteos) { %><br><span class="tenue"><%= r.info.conteos.paciente ?? 0 %> pacientes · <%= r.info.conteos.consulta ?? 0 %> consultas</span><% } %>
+        <% } %>
+      </td>
+      <td><%= f.tamano(r.tamano) %></td>
+      <td class="der acciones-respaldo">
+        <% if (r.info) { %>
+          <a class="btn chico sec" href="/admin/respaldos/<%= encodeURIComponent(r.nombre) %>/descargar">Descargar</a>
+          <% if (r.info.tipo === 'zip') { %><a class="btn chico sec" href="/admin/respaldos/<%= encodeURIComponent(r.nombre) %>/base-de-datos">Solo base de datos</a><% } %>
+          <a class="btn chico" href="/admin/respaldos/<%= encodeURIComponent(r.nombre) %>/restaurar">Restaurar…</a>
+        <% } %>
+        <form method="post" action="/admin/respaldos/<%= encodeURIComponent(r.nombre) %>/eliminar" data-confirmar="¿Eliminar el respaldo <%= r.nombre %>? Esta acción no se puede deshacer.">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <button class="btn chico peligro" type="submit">Eliminar</button>
+        </form>
+      </td>
+    </tr>
+  <% } %>
+  </tbody>
+</table></div>
+<% } %>
+<p class="tenue">¿Dudas? Consulta la sección <a href="/ayuda#respaldos">Respaldos del manual</a>.</p>
+
+<script>
+  document.querySelectorAll('form[data-confirmar]').forEach((f) => f.addEventListener('submit', (e) => {
+    if (!confirm(f.dataset.confirmar)) e.preventDefault();
+  }));
+  document.querySelectorAll('form[data-espera]').forEach((f) => f.addEventListener('submit', () => {
+    const b = f.querySelector('button[type=submit]');
+    b.disabled = true;
+    b.textContent = f.dataset.espera;
+  }));
+</script>
+<%- include('../partials/pie') %>

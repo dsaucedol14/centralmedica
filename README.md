@@ -31,23 +31,20 @@ Sistema web para administrar los expedientes clínicos de un consultorio médico
 |---|---|
 | **Médico** | Todo lo clínico: consultas, historia clínica, recetas, órdenes y certificados con su nombre y cédula. |
 | **Asistente** | Dar de alta y editar pacientes, manejar la agenda, subir archivos, y ver y reimprimir cualquier documento. No receta ni registra consultas. |
-| **Administrador** | Además de su rol: usuarios, datos del consultorio, bitácora y archivar expedientes. |
+| **Recepción** | Solo el módulo de Recepción: buscar o registrar pacientes (datos generales) y enviarlos a consulta. No ve expedientes. |
+| **Administrador** | Además de su rol: usuarios, datos del consultorio, bitácora, respaldos y archivar expedientes. |
 
-Los expedientes no se borran, solo se archivan, porque la NOM-004-SSA3-2012 pide conservarlos al menos 5 años. Las recetas, órdenes y certificados emitidos tampoco se modifican.
+Los expedientes no se borran, solo se archivan, porque la NOM-004-SSA3-2012 pide conservarlos al menos 5 años. Las recetas y certificados emitidos no se modifican; las órdenes de estudio las puede modificar o eliminar el médico que las emitió o un administrador (queda en la bitácora).
+
+Otros módulos: **Recepción y sala de espera** (el médico recibe un aviso con los datos generales del paciente que le envía recepción), **días bloqueados** en la agenda de cada médico, **respaldos** desde el propio sistema y **manual de usuario** en el menú *Ayuda*.
 
 ## Instalación (Windows con Laragon)
 
+La guía completa, paso a paso y sin tecnicismos, está en **[INSTALACION.md](INSTALACION.md)**. En resumen:
+
 1. Instala [Node.js 20 o superior](https://nodejs.org) y enciende **MySQL** en Laragon.
-2. En la carpeta del proyecto:
-   ```bash
-   npm install
-   copy .env.example .env
-   ```
-3. Edita `.env`:
-   - Pon una cadena larga y aleatoria en `SESSION_SECRET`.
-   - Cambia `ADMIN_PASSWORD`.
-   - Laragon usa `root` sin contraseña. Si tu MySQL es distinto, ajusta `DB_*`.
-4. Arranca con `npm start` o con doble clic en `iniciar.bat`, y abre http://localhost:3100.
+2. Doble clic en `iniciar.bat`. Revisa la versión de Node y que MySQL responda, instala los componentes, crea el `.env` (con una `SESSION_SECRET` aleatoria) y abre http://localhost:3100.
+3. Laragon usa `root` sin contraseña. Si tu MySQL es distinto, ajusta `DB_*` en `.env`.
 
 En el primer arranque se crean solos la base de datos `consultorio`, sus tablas y el usuario administrador (`ADMIN_USUARIO` / `ADMIN_PASSWORD`).
 
@@ -58,18 +55,11 @@ En el primer arranque se crean solos la base de datos `consultorio`, sus tablas 
 
 ### Usarlo desde otras computadoras de la red
 
-Las demás PCs y tabletas abren `http://IP-DE-ESTA-PC:3100`. Si no conectan, permite el puerto 3100 en el Firewall de Windows.
+Las demás PCs y tabletas abren `http://IP-DE-ESTA-PC:3100` (`iniciar.bat` muestra la dirección al arrancar). Si no conectan, permite el puerto 3100 en el Firewall de Windows (ver [INSTALACION.md](INSTALACION.md#81-abrir-el-puerto-en-el-firewall-de-windows)).
 
 ## Respaldos
 
-Respalda **las dos cosas**: la base de datos y la carpeta de archivos adjuntos.
-
-```bash
-# Base de datos (desde la carpeta bin de MySQL de Laragon)
-mysqldump -uroot --single-transaction consultorio > consultorio-AAAAMMDD.sql
-```
-
-Además copia la carpeta `uploads/` (o la que indique `UPLOADS_DIR`).
+En **Administración → Respaldos** se genera un `.zip` con la base de datos (`base-de-datos.sql`, utilizable por separado con MySQL) y, opcionalmente, los archivos adjuntos. Desde ahí también se descargan, se importan y se restauran; antes de restaurar se guarda solo un respaldo de seguridad y, si la restauración falla, se regresa sola al estado anterior. Los respaldos se guardan en `respaldos/` (o la carpeta de `RESPALDOS_DIR`).
 
 ## Estructura
 
@@ -78,9 +68,13 @@ src/
   server.js       arranque, sesiones (guardadas en MySQL) y rutas
   esquema.js      crea la base, las tablas y el primer administrador
   seguridad.js    sesión, roles, CSRF, encabezados y bitácora
-  rutas/          pacientes, consultas, documentos (recetas/órdenes/certificados), agenda, archivos, admin
-views/            plantillas EJS (los documentos imprimibles están en recetas/, ordenes/, certificados/)
-public/           CSS e íconos
+  respaldo.js     generar, leer, importar y restaurar respaldos
+  rutas/          pacientes, consultas, documentos (recetas/órdenes/certificados), agenda, archivos,
+                  recepcion, sala (sala de espera y avisos), respaldos, admin
+views/            plantillas EJS (los documentos imprimibles están en recetas/, ordenes/, certificados/;
+                  el manual de usuario en ayuda.ejs)
+public/           CSS, logo e íconos
+scripts/          preparar.js: revisión previa al arranque que usa iniciar.bat
 ```
 
 ## Seguridad

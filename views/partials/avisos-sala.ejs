@@ -1,0 +1,89 @@
+<div id="avisos-sala" class="avisos-sala" aria-live="assertive"></div>
+<script>
+(function () {
+  const csrf = <%- JSON.stringify(csrf) %>;
+  const contenedor = document.getElementById('avisos-sala');
+  const globo = document.getElementById('globo-sala');
+  const tituloOriginal = document.title;
+  const mostrados = new Set();
+
+  function el(tag, clase, texto) {
+    const e = document.createElement(tag);
+    if (clase) e.className = clase;
+    if (texto !== undefined && texto !== null) e.textContent = texto;
+    return e;
+  }
+
+  function tono() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.25].forEach((t) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.15, ctx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.2);
+        o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.2);
+      });
+    } catch (e) { /* el navegador puede bloquear el sonido hasta que se toque la página */ }
+  }
+
+  function actualizarTitulo() {
+    const n = contenedor.children.length;
+    document.title = n ? `(${n}) Nuevo paciente · ${tituloOriginal}` : tituloOriginal;
+  }
+
+  function cerrar(tarjeta, id) {
+    fetch(`/api/sala/avisos/${id}/enterado`, { method: 'POST', headers: { 'x-csrf-token': csrf } }).catch(() => {});
+    tarjeta.remove();
+    actualizarTitulo();
+  }
+
+  function tarjeta(a) {
+    const t = el('section', 'aviso-sala');
+    t.setAttribute('role', 'alert');
+    const cab = el('header');
+    cab.append(el('strong', null, a.primera_vez ? 'Paciente nuevo en espera' : 'Nuevo paciente en espera'), el('span', 'tenue', `Llegó a las ${a.llegada}`));
+    t.append(cab, el('div', 'aviso-sala-nombre', a.nombre));
+    const datos = [`Exp. ${a.expediente}`, a.edad, a.sexo, a.telefono ? `Tel. ${a.telefono}` : null].filter(Boolean).join(' · ');
+    t.append(el('div', null, datos));
+    if (a.alergias) t.append(el('div', 'aviso-sala-alergias', `Alergias: ${a.alergias}`));
+    if (a.motivo) t.append(el('div', null, `Motivo: ${a.motivo}`));
+    if (a.notas) t.append(el('div', 'tenue', `Nota de recepción: ${a.notas}`));
+    if (a.enviado_por) t.append(el('div', 'tenue', `Enviado por ${a.enviado_por}`));
+
+    const acciones = el('div', 'aviso-sala-acciones');
+    const pasar = el('form');
+    pasar.method = 'post';
+    pasar.action = `/sala-espera/${a.id}/pasar`;
+    const token = el('input'); token.type = 'hidden'; token.name = '_csrf'; token.value = csrf;
+    const boton = el('button', 'btn chico', 'Pasar a consulta'); boton.type = 'submit';
+    pasar.append(token, boton);
+    const ver = el('a', 'btn chico sec', 'Ver sala de espera'); ver.href = '/sala-espera';
+    const enterado = el('button', 'btn chico sec', 'Enterado'); enterado.type = 'button';
+    enterado.addEventListener('click', () => cerrar(t, a.id));
+    acciones.append(pasar, ver, enterado);
+    t.append(acciones);
+    return t;
+  }
+
+  async function revisar() {
+    try {
+      const r = await fetch('/api/sala/avisos', { headers: { accept: 'application/json' }, cache: 'no-store' });
+      if (!r.ok || !(r.headers.get('content-type') || '').includes('json')) return;
+      const datos = await r.json();
+      if (globo) { globo.textContent = datos.enEspera; globo.hidden = !datos.enEspera; }
+      let hayNuevos = false;
+      for (const a of datos.nuevos) {
+        if (mostrados.has(a.id)) continue;
+        mostrados.add(a.id);
+        contenedor.append(tarjeta(a));
+        hayNuevos = true;
+      }
+      if (hayNuevos) { tono(); actualizarTitulo(); }
+    } catch (e) { /* sin conexión: se reintenta en el siguiente ciclo */ }
+  }
+
+  revisar();
+  setInterval(revisar, 10000);
+})();
+</script>

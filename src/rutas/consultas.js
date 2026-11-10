@@ -59,11 +59,14 @@ router.get('/pacientes/:id/consultas/nueva', requiereMedico, async (req, res) =>
   const p = await cargarPaciente(req, res);
   if (!p) return;
   const c = { fecha: ahoraLocal().replace('T', ' ') };
-  const cita = req.query.cita ? await uno('SELECT * FROM cita WHERE id = ? AND paciente_id = ?', [req.query.cita, p.id]) : null;
+  const turno = req.query.turno ? await uno("SELECT * FROM turno WHERE id = ? AND paciente_id = ? AND estado IN ('EN_ESPERA','EN_CONSULTA')", [req.query.turno, p.id]) : null;
+  const citaId = req.query.cita || (turno && turno.cita_id);
+  const cita = citaId ? await uno('SELECT * FROM cita WHERE id = ? AND paciente_id = ?', [citaId, p.id]) : null;
   if (cita && cita.motivo) c.motivo = cita.motivo;
+  if (turno && turno.motivo) c.motivo = turno.motivo;
   const anterior = await uno('SELECT talla FROM consulta WHERE paciente_id = ? AND talla IS NOT NULL ORDER BY fecha DESC LIMIT 1', [p.id]);
   if (anterior) c.talla = anterior.talla; // la talla de un adulto casi no cambia: se propone la última
-  res.render('consultas/form', { titulo: 'Nueva consulta', p, c, citaId: cita ? cita.id : null, error: null });
+  res.render('consultas/form', { titulo: 'Nueva consulta', p, c, citaId: cita ? cita.id : null, turnoId: turno ? turno.id : null, error: null });
 });
 
 router.post('/pacientes/:id/consultas', requiereMedico, async (req, res) => {
@@ -72,10 +75,15 @@ router.post('/pacientes/:id/consultas', requiereMedico, async (req, res) => {
   const c = leer(req.body);
   const error = validar(c);
   const citaId = Number(req.body.cita_id) || null;
-  if (error) return res.status(400).render('consultas/form', { titulo: 'Nueva consulta', p, c, citaId, error });
+  const turnoId = Number(req.body.turno_id) || null;
+  if (error) return res.status(400).render('consultas/form', { titulo: 'Nueva consulta', p, c, citaId, turnoId, error });
   const r = await q(`INSERT INTO consulta (paciente_id, medico_id, ${CAMPOS.join(', ')}) VALUES (?, ?, ${CAMPOS.map(() => '?').join(', ')})`,
     [p.id, req.usuario.id, ...CAMPOS.map((k) => c[k])]);
   if (citaId) await q("UPDATE cita SET estado = 'ATENDIDA' WHERE id = ? AND paciente_id = ?", [citaId, p.id]);
+  if (turnoId) {
+    await q(`UPDATE turno SET estado = 'ATENDIDO', consulta_id = ?, atendido_en = NOW(), pasa_en = COALESCE(pasa_en, NOW())
+              WHERE id = ? AND paciente_id = ? AND estado IN ('EN_ESPERA','EN_CONSULTA')`, [r.insertId, turnoId, p.id]);
+  }
   await bitacora(req, 'CREAR', 'consulta', r.insertId, p.id, c.motivo);
   req.flash('ok', 'Consulta guardada. Desde aquí puedes emitir la receta, la orden de estudios o un certificado.');
   res.redirect(`/consultas/${r.insertId}`);
@@ -98,7 +106,7 @@ router.get('/consultas/:id/editar', requiereMedico, async (req, res) => {
   if (!c) return res.status(404).render('error', { titulo: 'No encontrado', mensaje: 'Esa consulta no existe.' });
   if (c.medico_id !== req.usuario.id) return prohibido(res, 'Solo el médico que hizo la consulta puede corregirla.');
   const p = await uno('SELECT * FROM paciente WHERE id = ?', [c.paciente_id]);
-  res.render('consultas/form', { titulo: 'Editar consulta', p, c, citaId: null, error: null });
+  res.render('consultas/form', { titulo: 'Editar consulta', p, c, citaId: null, turnoId: null, error: null });
 });
 
 router.post('/consultas/:id', requiereMedico, async (req, res) => {
@@ -109,7 +117,7 @@ router.post('/consultas/:id', requiereMedico, async (req, res) => {
   const error = validar(c);
   if (error) {
     const p = await uno('SELECT * FROM paciente WHERE id = ?', [actual.paciente_id]);
-    return res.status(400).render('consultas/form', { titulo: 'Editar consulta', p, c: { ...c, id: actual.id }, citaId: null, error });
+    return res.status(400).render('consultas/form', { titulo: 'Editar consulta', p, c: { ...c, id: actual.id }, citaId: null, turnoId: null, error });
   }
   await q(`UPDATE consulta SET ${CAMPOS.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`, [...CAMPOS.map((k) => c[k]), actual.id]);
   await bitacora(req, 'EDITAR', 'consulta', actual.id, actual.paciente_id);
