@@ -48,6 +48,12 @@ router.get('/recepcion', async (req, res) => {
   res.render('recepcion/inicio', { titulo: 'Recepción', busqueda, pacientes, sala: await salaDeHoy() });
 });
 
+/** Solo la sala de espera, para que la pantalla de recepción se actualice sola sin recargarse. */
+router.get('/recepcion/sala', async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.render('recepcion/_sala', { sala: await salaDeHoy() });
+});
+
 /* ----------------------------- Datos generales ----------------------------- */
 
 function soloGenerales(body) {

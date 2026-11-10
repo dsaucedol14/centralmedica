@@ -1,0 +1,33 @@
+<% const activos = sala.filter((t) => t.estado === 'EN_ESPERA' || t.estado === 'EN_CONSULTA'); %>
+<% const terminados = sala.filter((t) => t.estado === 'ATENDIDO' || t.estado === 'CANCELADO').sort((a, b) => String(b.atendido_en || b.llegada).localeCompare(String(a.atendido_en || a.llegada))); %>
+<% if (!activos.length) { %><p class="tenue">No hay pacientes esperando.</p><% } %>
+<div class="turnos">
+  <% for (const t of activos) { %>
+    <div class="turno <%= t.estado.toLowerCase() %>" data-turno="<%= t.id %>" data-estado="<%= t.estado %>">
+      <div class="turno-nombre"><%= f.nombreCompleto(t) %></div>
+      <div class="tenue">Exp. <%= t.expediente %> · llegó a las <%= f.hora(t.llegada) %></div>
+      <div><strong><%= t.estado === 'EN_CONSULTA' ? 'En consulta con' : 'Espera a' %></strong> <%= t.medico %>
+        <% if (t.estado === 'EN_CONSULTA' && t.pasa_en) { %><span class="tenue">desde las <%= f.hora(t.pasa_en) %></span><% } %></div>
+      <% if (t.motivo) { %><div class="tenue"><%= t.motivo %></div><% } %>
+      <% if (t.estado === 'EN_ESPERA') { %>
+        <div class="turno-acciones">
+          <form method="post" action="/recepcion/turnos/<%= t.id %>/cancelar" onsubmit="return confirm('¿Sacar a este paciente de la sala de espera?')">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="btn chico peligro" type="submit">Cancelar envío</button>
+          </form>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
+</div>
+<% if (terminados.length) { %>
+  <details id="sala-terminados">
+    <summary class="tenue">Atendidos y cancelados hoy (<%= terminados.length %>)</summary>
+    <ul>
+      <% for (const t of terminados) { %>
+        <li data-turno="<%= t.id %>" data-estado="<%= t.estado %>"><%= f.nombreCompleto(t) %> · <%= t.medico %> ·
+          <%= t.estado === 'ATENDIDO' ? `atendido${t.atendido_en ? ' a las ' + f.hora(t.atendido_en) : ''}` : 'cancelado' %> (llegó <%= f.hora(t.llegada) %>)</li>
+      <% } %>
+    </ul>
+  </details>
+<% } %>

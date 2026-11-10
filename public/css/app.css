@@ -232,6 +232,10 @@ button.enlace-chico { background: none; border: 0; padding: 0; margin: 0; color:
 .turno.atendido { border-left-color: #9ca3af; opacity: .75; }
 .turno.cancelado { border-left-color: #d1d5db; opacity: .6; }
 .turno-nombre { font-size: 16px; font-weight: 700; }
+.sala-cabecera { margin-bottom: 8px; align-items: baseline; }
+.sala-cabecera h2 { margin: 0; }
+.cambio { animation: resalte 3s ease-out; }
+@keyframes resalte { from { background-color: #fde68a; } to { background-color: transparent; } }
 .turno-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .turno-acciones form { margin: 0; }
 .pasos { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; padding: 0; margin: 0 0 16px; color: var(--tenue); font-size: 14px; }

@@ -51,37 +51,45 @@
   <% } %>
 <% } %>
 
-<h2>Sala de espera de hoy</h2>
-<% const activos = sala.filter((t) => t.estado === 'EN_ESPERA' || t.estado === 'EN_CONSULTA'); %>
-<% const terminados = sala.filter((t) => t.estado === 'ATENDIDO' || t.estado === 'CANCELADO'); %>
-<% if (!activos.length) { %><p class="tenue">No hay pacientes esperando.</p><% } %>
-<div class="turnos">
-  <% for (const t of activos) { %>
-    <div class="turno <%= t.estado.toLowerCase() %>">
-      <div class="turno-nombre"><%= f.nombreCompleto(t) %></div>
-      <div class="tenue">Exp. <%= t.expediente %> · llegó a las <%= f.hora(t.llegada) %></div>
-      <div><strong><%= t.estado === 'EN_CONSULTA' ? 'En consulta con' : 'Espera a' %></strong> <%= t.medico %></div>
-      <% if (t.motivo) { %><div class="tenue"><%= t.motivo %></div><% } %>
-      <% if (t.estado === 'EN_ESPERA') { %>
-        <div class="turno-acciones">
-          <form method="post" action="/recepcion/turnos/<%= t.id %>/cancelar" onsubmit="return confirm('¿Sacar a este paciente de la sala de espera?')">
-            <input type="hidden" name="_csrf" value="<%= csrf %>">
-            <button class="btn chico peligro" type="submit">Cancelar envío</button>
-          </form>
-        </div>
-      <% } %>
-    </div>
-  <% } %>
+<div class="cabecera sala-cabecera">
+  <h2>Sala de espera de hoy</h2>
+  <span class="tenue" id="sala-estado">Se actualiza sola</span>
 </div>
-<% if (terminados.length) { %>
-  <details>
-    <summary class="tenue">Atendidos y cancelados hoy (<%= terminados.length %>)</summary>
-    <ul>
-      <% for (const t of terminados) { %>
-        <li><%= f.nombreCompleto(t) %> · <%= t.medico %> · <%= t.estado === 'ATENDIDO' ? 'atendido' : 'cancelado' %> (llegó <%= f.hora(t.llegada) %>)</li>
-      <% } %>
-    </ul>
-  </details>
-<% } %>
-<script>setInterval(() => { if (document.activeElement.id !== 'q') location.reload(); }, 60000);</script>
+<div id="sala-recepcion"><%- include('_sala') %></div>
+<script>
+(function () {
+  const caja = document.getElementById('sala-recepcion');
+  const estado = document.getElementById('sala-estado');
+  let ultimo = caja.innerHTML;
+
+  // Avisa con un resalte breve qué pacientes cambiaron (pasaron a consulta o ya fueron atendidos)
+  function estados(raiz) {
+    const m = new Map();
+    raiz.querySelectorAll('[data-turno]').forEach((e) => m.set(e.dataset.turno, e.dataset.estado));
+    return m;
+  }
+
+  async function actualizar() {
+    try {
+      const r = await fetch('/recepcion/sala', { headers: { accept: 'text/html' }, cache: 'no-store' });
+      if (!r.ok || r.redirected) return;
+      const html = await r.text();
+      const hora = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      estado.textContent = `Se actualiza sola · ${hora}`;
+      if (html === ultimo) return;
+      const antes = estados(caja);
+      const abierto = document.getElementById('sala-terminados')?.open;
+      caja.innerHTML = html;
+      ultimo = html;
+      if (abierto && document.getElementById('sala-terminados')) document.getElementById('sala-terminados').open = true;
+      caja.querySelectorAll('[data-turno]').forEach((e) => {
+        if (antes.get(e.dataset.turno) !== e.dataset.estado) e.classList.add('cambio');
+      });
+    } catch (e) {
+      estado.textContent = 'Sin conexión con el sistema; reintentando…';
+    }
+  }
+  setInterval(actualizar, 5000);
+})();
+</script>
 <%- include('../partials/pie') %>
